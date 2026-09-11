@@ -1,0 +1,12 @@
+import type * as React from 'react';
+import type * as Primitive from '@radix-ui/react-dialog';
+export const Dialog: typeof Primitive.Root;
+export const DialogTrigger: typeof Primitive.Trigger;
+export const DialogPortal: typeof Primitive.Portal;
+export const DialogClose: typeof Primitive.Close;
+export const DialogOverlay: React.ForwardRefExoticComponent<Primitive.DialogOverlayProps & React.RefAttributes<HTMLDivElement>>;
+export const DialogContent: React.ForwardRefExoticComponent<Primitive.DialogContentProps & React.RefAttributes<HTMLDivElement>>;
+export const DialogTitle: React.ForwardRefExoticComponent<Primitive.DialogTitleProps & React.RefAttributes<HTMLHeadingElement>>;
+export const DialogDescription: React.ForwardRefExoticComponent<Primitive.DialogDescriptionProps & React.RefAttributes<HTMLParagraphElement>>;
+export const DialogHeader: React.ComponentType<React.HTMLAttributes<HTMLDivElement>>;
+export const DialogFooter: React.ComponentType<React.HTMLAttributes<HTMLDivElement>>;
