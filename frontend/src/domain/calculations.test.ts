@@ -2,7 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { factories, interventions, processFlows, sources, reference } from './fixtures';
 import { extractionSamples } from './extraction';
 import { parseCommand } from './commands';
-import { scenario, extractEstimate, portfolioTotals, csvExport, capexFor, eligibleFor } from './calculations';
+import {
+  scenario,
+  extractEstimate,
+  portfolioTotals,
+  csvExport,
+  capexFor,
+  eligibleFor,
+  roiPercent,
+} from './calculations';
 import { validateFixtures } from './validation';
 import { generateDigest } from './digest';
 import type { LedgerEntry } from './types';
@@ -41,8 +49,11 @@ describe('fixtures and validation', () => {
     // The screen shows wasteTonnes beside the waste cost, so the two must agree on the rate.
     factories.forEach(f => {
       expect(f.costs.waste).toBeCloseTo(f.wasteTonnes * reference.wasteRateINR, 0);
-      expect(f.costs.fuel).toBeCloseTo(f.hotspots.fuel / reference.coalFactor * reference.coalRateINR, 0);
-      expect(f.costs.electricity).toBeCloseTo(f.hotspots.electricity / reference.gridFactor * reference.gridRateINR, 0);
+      expect(f.costs.fuel).toBeCloseTo((f.hotspots.fuel / reference.coalFactor) * reference.coalRateINR, 0);
+      expect(f.costs.electricity).toBeCloseTo(
+        (f.hotspots.electricity / reference.gridFactor) * reference.gridRateINR,
+        0,
+      );
     });
   });
 
@@ -77,7 +88,7 @@ describe('scenario math and guardrails', () => {
   it('keeps capex fixed across adoption and 0 adoption gives no payback', () => {
     const r = scenario(bhilai, [wasteHeat], 0);
     const full = scenario(bhilai, [wasteHeat], 100);
-    expect(r.capex).toBe(full.capex);                 // the invariant: capex never scales with adoption
+    expect(r.capex).toBe(full.capex); // the invariant: capex never scales with adoption
     expect(r.capex).toBe(capexFor(bhilai, wasteHeat));
     expect(r.paybackMonths).toBeNull();
     expect(r.cashflow[0].value).toBe(-r.capex);
@@ -89,9 +100,9 @@ describe('scenario math and guardrails', () => {
     const solarMeasure = interventions.find(i => i.id === 'solar')!;
     const big = scenario(bhilai, [solarMeasure], 100).capex;
     const little = scenario(small, [solarMeasure], 100).capex;
-    expect(big).toBeGreaterThan(little);              // 842,000 tCO2e must not cost the same as 58,000
+    expect(big).toBeGreaterThan(little); // 842,000 tCO2e must not cost the same as 58,000
     // Sub-linear: ten times the opportunity costs far less than ten times the money.
-    const ratio = (bhilai.hotspots.electricity) / (small.hotspots.electricity);
+    const ratio = bhilai.hotspots.electricity / small.hotspots.electricity;
     expect(big / little).toBeLessThan(ratio);
   });
 
@@ -132,7 +143,9 @@ describe('scenario math and guardrails', () => {
   it('supports only approved compatible bundles on distinct sources', () => {
     const r = scenario(bhilai, [wasteHeat, solar], 100);
     expect(r.reduction).toBeGreaterThan(0);
-    expect(() => scenario(bhilai, [wasteHeat, solar, motor], 100)).toThrow('This combination is not compatible.');
+    expect(() => scenario(bhilai, [wasteHeat, solar, motor], 100)).toThrow(
+      'This combination is not compatible.',
+    );
   });
 });
 
@@ -149,10 +162,58 @@ describe('portfolio, parser, csv, extraction, digest', () => {
     const s3 = scenario(bhilai, [solar], 50);
     const s4 = scenario(satna, [wasteHeat], 75);
     const entries: LedgerEntry[] = [
-      { id: 'A', factoryId: bhilai.id, interventionIds: ['solar'], adoption: 100, reduction: s1.reduction, operatingSavings: s1.operatingSavings, capex: s1.capex, realisedSavings: 0, status: 'Estimated', createdAt: '2026-02-01T00:00:00Z', simulated: true },
-      { id: 'B', factoryId: bhilai.id, interventionIds: ['motor-efficiency'], adoption: 100, reduction: s2.reduction, operatingSavings: s2.operatingSavings, capex: s2.capex, realisedSavings: 0, status: 'Estimated', createdAt: '2026-02-01T00:00:00Z', simulated: true },
-      { id: 'C', factoryId: bhilai.id, interventionIds: ['solar'], adoption: 50, reduction: s3.reduction, operatingSavings: s3.operatingSavings, capex: s3.capex, realisedSavings: 0, status: 'Estimated', createdAt: '2026-02-01T00:00:00Z', simulated: true },
-      { id: 'D', factoryId: satna.id, interventionIds: ['waste-heat'], adoption: 75, reduction: s4.reduction, operatingSavings: s4.operatingSavings, capex: s4.capex, realisedSavings: 0, status: 'In review', createdAt: '2026-02-02T00:00:00Z', simulated: true },
+      {
+        id: 'A',
+        factoryId: bhilai.id,
+        interventionIds: ['solar'],
+        adoption: 100,
+        reduction: s1.reduction,
+        operatingSavings: s1.operatingSavings,
+        capex: s1.capex,
+        realisedSavings: 0,
+        status: 'Estimated',
+        createdAt: '2026-02-01T00:00:00Z',
+        simulated: true,
+      },
+      {
+        id: 'B',
+        factoryId: bhilai.id,
+        interventionIds: ['motor-efficiency'],
+        adoption: 100,
+        reduction: s2.reduction,
+        operatingSavings: s2.operatingSavings,
+        capex: s2.capex,
+        realisedSavings: 0,
+        status: 'Estimated',
+        createdAt: '2026-02-01T00:00:00Z',
+        simulated: true,
+      },
+      {
+        id: 'C',
+        factoryId: bhilai.id,
+        interventionIds: ['solar'],
+        adoption: 50,
+        reduction: s3.reduction,
+        operatingSavings: s3.operatingSavings,
+        capex: s3.capex,
+        realisedSavings: 0,
+        status: 'Estimated',
+        createdAt: '2026-02-01T00:00:00Z',
+        simulated: true,
+      },
+      {
+        id: 'D',
+        factoryId: satna.id,
+        interventionIds: ['waste-heat'],
+        adoption: 75,
+        reduction: s4.reduction,
+        operatingSavings: s4.operatingSavings,
+        capex: s4.capex,
+        realisedSavings: 0,
+        status: 'In review',
+        createdAt: '2026-02-02T00:00:00Z',
+        simulated: true,
+      },
     ];
     const totals = portfolioTotals(entries, factories);
     expect(totals.reduction).toBeCloseTo(Math.max(s1.reduction, s2.reduction) + s4.reduction, 6);
@@ -169,9 +230,24 @@ describe('portfolio, parser, csv, extraction, digest', () => {
   it('escapes csv formula injection and keeps headers', () => {
     const s = scenario(bhilai, [solar], 100);
     const entries: LedgerEntry[] = [
-      { id: '=1+1', factoryId: bhilai.id, interventionIds: ['solar'], adoption: 100, reduction: s.reduction, operatingSavings: s.operatingSavings, capex: s.capex, realisedSavings: 0, status: 'Estimated', createdAt: '2026-02-01T00:00:00Z', simulated: true },
+      {
+        id: '=1+1',
+        factoryId: bhilai.id,
+        interventionIds: ['solar'],
+        adoption: 100,
+        reduction: s.reduction,
+        operatingSavings: s.operatingSavings,
+        capex: s.capex,
+        realisedSavings: 0,
+        status: 'Estimated',
+        createdAt: '2026-02-01T00:00:00Z',
+        simulated: true,
+      },
     ];
-    const csv = csvExport(entries, [{ ...bhilai, name: '+Injected Factory' }, ...factories.filter(f => f.id !== bhilai.id)]);
+    const csv = csvExport(entries, [
+      { ...bhilai, name: '+Injected Factory' },
+      ...factories.filter(f => f.id !== bhilai.id),
+    ]);
     expect(csv.startsWith('\uFEFF')).toBe(true);
     expect(csv).toContain('"Record ID"');
     expect(csv).toContain('"\'=1+1"');
@@ -181,19 +257,59 @@ describe('portfolio, parser, csv, extraction, digest', () => {
   it('handles extraction zeroes and rejects negative/non-finite values', () => {
     expect(extractEstimate(0, 0, 0)).toEqual({ emissions: 0, cost: 0 });
     expect(() => extractEstimate(-1, 1, 1)).toThrow('Enter non-negative, finite values.');
-    expect(() => extractEstimate(Number.POSITIVE_INFINITY, 1, 1)).toThrow('Enter non-negative, finite values.');
+    expect(() => extractEstimate(Number.POSITIVE_INFINITY, 1, 1)).toThrow(
+      'Enter non-negative, finite values.',
+    );
     expect(() => extractEstimate(1e308, 1e308, 1e308)).toThrow('Values are too large.');
   });
 
   it('generates digest using current session-like values', () => {
     const bhilaiWasteHeat = scenario(bhilai, [wasteHeat], 75);
     const ledger: LedgerEntry[] = [
-      { id: 'LP-2026-001', factoryId: bhilai.id, interventionIds: ['waste-heat'], adoption: 75, reduction: bhilaiWasteHeat.reduction, operatingSavings: bhilaiWasteHeat.operatingSavings, capex: bhilaiWasteHeat.capex, realisedSavings: 0, status: 'Estimated', createdAt: '2026-02-01T09:00:00Z', simulated: true },
+      {
+        id: 'LP-2026-001',
+        factoryId: bhilai.id,
+        interventionIds: ['waste-heat'],
+        adoption: 75,
+        reduction: bhilaiWasteHeat.reduction,
+        operatingSavings: bhilaiWasteHeat.operatingSavings,
+        capex: bhilaiWasteHeat.capex,
+        realisedSavings: 0,
+        status: 'Estimated',
+        createdAt: '2026-02-01T09:00:00Z',
+        simulated: true,
+      },
     ];
     const digest = generateDigest(factories, ledger, []);
     expect(digest).toContain('12 factories; 12 illustrative baselines; 0 awaiting baseline.');
     expect(digest).toContain('1 scenario record; 0 simulated Issued labels, none registry verified.');
     expect(digest).toContain('Realised savings: ₹0');
     expect(digest).toContain('Generated from the displayed session dataset using a fixed template, not AI.');
+  });
+});
+
+describe('roiPercent', () => {
+  it('expresses annual savings as a percentage of the capital that bought them', () => {
+    expect(roiPercent(25_000_000, 100_000_000)).toBe(25);
+    expect(roiPercent(200_000_000, 100_000_000)).toBe(200);
+  });
+
+  it('returns null when there is no capital to return, rather than Infinity', () => {
+    // A no-capex measure pays back immediately; a ratio over zero is not a number to put on screen.
+    expect(roiPercent(8_500_000, 0)).toBeNull();
+  });
+
+  it('returns null when the measure does not pay for itself', () => {
+    expect(roiPercent(0, 100_000_000)).toBeNull();
+    expect(roiPercent(-5_000_000, 100_000_000)).toBeNull();
+  });
+
+  it('agrees with the payback period scenario() reports for the same measure', () => {
+    const factory = factories.find(f => f.baseline !== null)!;
+    const item = interventions.find(i => eligibleFor(factory, i) && i.capex > 0)!;
+    const result = scenario(factory, [item], 100);
+    if (result.roiPercent === null || result.paybackMonths === null) return;
+    // Payback in months and return per year are the same fact stated two ways.
+    expect(result.roiPercent).toBeCloseTo(1200 / result.paybackMonths, 6);
   });
 });
