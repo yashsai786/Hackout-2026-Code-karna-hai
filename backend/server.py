@@ -430,5 +430,6 @@ async def interventions_catalogue() -> Dict:
 @app.get('/api/v1/alerts')
 async def alerts() -> Dict:
     """Alerts derived from the current session document at request time."""
-    doc = await state['store'].load() or {'factories': [], 'ledger': []}
+    # Same source of truth as GET /api/v1/state: the seed until something is saved.
+    doc = await state['store'].load() or _json.loads(SEED_PATH.read_text())
     return {'alerts': build_alerts(doc), 'generatedAt': __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}
