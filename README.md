@@ -54,6 +54,7 @@ output as an illustrative estimate.
 | `/` | **Command Map** | Full-page Leaflet map over OpenStreetMap tiles, sector and state filters, total-versus-intensity ranking, natural-language command bar, tile-outage fallback |
 | `/intake` | **Data Intake** | Three-stage source capture with simulated extraction, editable factors, and per-source estimates |
 | `/factories` | **Factories** | Twelve-site index with search and sector filters |
+| `/factories/:id/profile` | **Process & Baseline** | Enter production, per-source activity, factors, costs and material streams; optionally estimate the split with the model. This is what turns a new factory into an analysable one |
 | `/factories/:id` | **Factory Detail** | Hotspots by source, twelve-month history chart, intensity, export exposure, process flow, recommended starting points |
 | `/interventions` | **Interventions** | Catalogue of six measures with sector eligibility |
 | `/interventions/:id` | **Scenario Builder** | Adoption slider (0–100 percent), compatible bundles, reduction, payback, and a 36-month cash-flow chart |
@@ -76,13 +77,16 @@ output as an illustrative estimate.
 
 ```
 frontend/               React 19 + TypeScript + Vite
-  src/pages/            9 route components
+  src/pages/            10 route components, including the process & baseline page
   src/components/       Shell, FactoryMap, CommandBar, Charts, shadcn/ui primitives
   src/domain/           Types, fixtures, calculations, extraction, digest, commands, validation
+  src/copilot/          Grounded tool registry, agent loop and system prompt for the Copilot
   src/state/            Session, UI, and settings React contexts (in memory only)
   src/lib/openrouter.ts Optional session-only OpenRouter key validation and model listing
-backend/                FastAPI health-check foundation (not called by the application)
-  server.py             GET /api/ and GET /api/health, with a MongoDB ping
+backend/                FastAPI service
+  server.py             health, model card, and the hotspot prediction endpoint
+  train.py              fits the model, prints held-out error against the sector-table baseline
+  models/               hotspots.joblib + metrics.json (committed so the demo runs offline)
 tests/, test_reports/   Automated UI sweep artefacts and pytest output
 memory/PRD.md           Product requirements and change log
 ```
@@ -94,8 +98,9 @@ memory/PRD.md           Product requirements and change log
 | Map | Leaflet and react-leaflet over OpenStreetMap tiles |
 | Charts | Recharts |
 | Calculations | Deterministic TypeScript in `src/domain/calculations.ts` |
-| Backend | Python FastAPI (health endpoints only) |
-| Storage | None. React state only; a refresh restores the demonstration dataset |
+| Backend | Python FastAPI serving the hotspot model (`/api/v1/hotspots`, `/api/v1/model`) |
+| Machine learning | scikit-learn `HistGradientBoostingRegressor`, artefact in `backend/models/` |
+| Storage | Browser `localStorage`; a reset control in Settings restores the demonstration dataset |
 
 ### Hardened business rules
 
@@ -120,21 +125,43 @@ mixed waste 0.45 tCO2e/tonne.
 
 ## 5. Pitch deck compared with the current build
 
-The deck describes the target product. The table below states, without embellishment, what
-the repository implements today.
-
-| Deck claim | Status in this repository |
+| Deck claim | Status |
 | --- | --- |
 | React, Leaflet, OpenStreetMap frontend | **Implemented.** D3.js is not used; Recharts covers the charting need |
-| Python FastAPI REST services | **Foundation only.** `backend/server.py` exposes health endpoints; the application never calls it |
-| Vision model with OCR fallback | **Simulated.** `domain/extraction.ts` supplies three editable fixture samples, and the Intake screen discloses that no document content is read |
-| scikit-learn ranking model | **Not implemented.** Ranking is a deterministic, rule-based sort over fixture data |
-| Cloud PostgreSQL with PostGIS | **Not implemented.** No persistence layer; the FastAPI stub pings MongoDB only |
-| 62,868 tCO2 avoided and INR 58.58 crore saved across 345 MSMEs | **External benchmark, not product output.** The build ships 12 illustrative factories, and every export is labelled "illustrative estimate only" |
-| CCTS credit generation, 490 obligated entities, EUR 87–90 per tonne at the EU border | **Contextual market references.** Credit figures in the application are conditional illustrations, never issuance |
+| Python FastAPI REST services | **Implemented.** `POST /api/v1/hotspots` serves the model, `GET /api/v1/model` returns its card |
+| scikit-learn model | **Implemented, with one honest caveat.** A `HistGradientBoostingRegressor` predicts the emission split from plant attributes. It is fitted on a **synthetic** cohort (see below), which is stated in the API response, on screen, and here |
+| Vision model with OCR fallback | **Not implemented.** Intake extraction is a simulated flow over editable sample fixtures and says so on screen. Do not claim photo extraction on stage |
+| Cloud PostgreSQL with PostGIS | **Not implemented.** Session state persists to browser `localStorage`; there is no server database and nothing geospatial |
+| 62,868 tCO2 avoided and INR 58.58 crore saved across 345 MSMEs | **External benchmark, not product output.** Present it as sector context, never as something this build produced |
+| CCTS credit generation, EUR 87–90/t at the EU border | **Contextual references.** Credit figures in the app are conditional illustrations, never issuance |
 
-**Nothing in this repository is registry verified, and no credits, revenue, or realised
-savings are created.**
+### The machine learning, stated plainly
+
+**What it does.** Until now the split of emissions across thermal fuel, electricity, process and
+waste came from a constant table keyed on sector alone, so every steel plant in the country received
+an identical breakdown and therefore identical advice. The model predicts that split from what an
+operator can actually answer — sector, process route, primary fuel, grid region, annual production,
+energy spend, plant age, headcount — none of which determines the answer outright. That is a real
+supervised learning problem, not arithmetic in disguise.
+
+**How good it is.** Held-out mean absolute error per share, against the constant sector table it
+replaces:
+
+| | Model | Sector table |
+| --- | --- | --- |
+| Mean share MAE | **0.036–0.015 (mean 0.028)** | 0.093 |
+
+That is **70.1% closer** than the table. Reproduce with `python backend/train.py`, which prints the
+comparison and writes `backend/models/metrics.json`.
+
+**What it was trained on — read this before presenting.** The right training source is plant-level
+Indian disclosure (BEE PAT designated-consumer filings, the CEA CO2 baseline database, India GHG
+Programme inventories, CDM and Gold Standard PDDs). That data is not redistributable and was not
+assembled in the hackathon window. The shipped model is therefore fitted on a **synthetic cohort of
+8,000 plants** generated from published per-tonne intensity ranges and process
+archetypes with plant-to-plant variation. The API returns `training: "synthetic"`, and the app says
+so wherever a prediction is shown. A disclosed synthetic fit survives questioning; an undisclosed
+one does not.
 
 ## 6. Running the project
 
@@ -145,15 +172,10 @@ savings are created.**
 
 ### Frontend
 
-Create `frontend/.env`. Vite fails fast when these variables are absent:
+Copy the tracked example. Vite fails fast when any of these variables are absent:
 
 ```bash
-cat > frontend/.env <<'EOF'
-REACT_APP_BACKEND_URL=http://localhost:8001
-FRONTEND_HOST=0.0.0.0
-FRONTEND_PORT=3000
-FRONTEND_ALLOWED_HOSTS=localhost,127.0.0.1
-EOF
+cp frontend/.env.example frontend/.env
 ```
 
 Then install and start the application:
@@ -171,11 +193,14 @@ cd frontend && yarn install && yarn start
 ### Backend (optional)
 
 ```bash
-cd backend && pip install -r requirements.txt && uvicorn server:app --port 8001
+cd backend && pip install -r requirements.txt
+python train.py          # fits the model and prints its held-out error; writes models/hotspots.joblib
+uvicorn server:app --port 8001
 ```
 
-Requires `MONGO_URL`, `DB_NAME`, and `CORS_ORIGINS` in `backend/.env`. The frontend
-functions fully without it.
+Copy `backend/.env.example` to `backend/.env`. MongoDB is optional and unused by the
+application. **The frontend works fully without the backend** — the estimator is an optional
+assist and every other figure is computed in the browser.
 
 ## 7. Testing
 
@@ -205,16 +230,14 @@ cd frontend && yarn test
   never sent to a Leakpoint server.
 - Session state clears on refresh, which restores the demonstration dataset.
 
-## 9. Roadmap
+## 9. What is left
 
-Sequenced to close the gap in section 5:
-
-1. Replace simulated extraction with a vision model and an OCR fallback for bills, meters, and manifests.
-2. Introduce PostgreSQL with PostGIS, and move fixtures behind FastAPI endpoints.
-3. Train the scikit-learn ranking model on cluster outcome data, replacing the rule-based sort.
-4. Integrate the CEA CO2 baseline as a live benchmark rather than a fixture constant.
-5. Add the Track stage: milestone monitoring, adoption verification, and realised-impact reconciliation.
-6. Raise Lighthouse accessibility to 95 or above on the Command Map and Data Intake screens.
+1. Replace the synthetic training cohort with real plant-level disclosures and re-fit.
+2. Real document extraction for the Intake stage, replacing the simulated flow.
+3. Server-side persistence and multi-user accounts; today the session lives in one browser.
+4. Roles for the consultant and regulator users named in the brief — today everything is
+   single-operator.
+5. Calibrate the capex scale exponent against realised project costs rather than the six-tenths rule.
 
 ## 10. Disclaimer
 

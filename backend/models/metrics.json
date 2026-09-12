@@ -1,0 +1,14 @@
+{
+  "model_share_mae": 0.027993114306482426,
+  "sector_table_share_mae": 0.09349732989665528,
+  "improvement_pct": 70.05998530928761,
+  "per_target": {
+    "share_fuel": 0.03566597907781326,
+    "share_electricity": 0.031118498684775685,
+    "share_process": 0.030223771514587792,
+    "share_waste": 0.014964207948752957,
+    "intensity_tco2e_per_t": 0.0981325805411179
+  },
+  "n_samples": 8000,
+  "training": "synthetic"
+}
