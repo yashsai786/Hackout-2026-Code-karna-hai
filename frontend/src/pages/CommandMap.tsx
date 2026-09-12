@@ -7,6 +7,7 @@ import { sectors, interventions, sources, sourceLabels } from '../domain/fixture
 import { intensity, scenario, sum, eligibleFor } from '../domain/calculations';
 import { compact, fmt, Tag, Empty, Btn } from '../components/Primitives';
 import { FactoryMap } from '../components/FactoryMap';
+import { geoLayers, type GeoLayerId } from '../domain/geo';
 import { CommandBar } from '../components/CommandBar';
 
 const sectorColors: Record<string, string> = {
@@ -22,13 +23,22 @@ export default function CommandMap() {
   const [params, setParams] = useSearchParams();
   const [sector, setSector] = useState('all'),
     [state, setState] = useState('all'),
-    [ranking, setRanking] = useState<'total' | 'intensity'>('total');
+    [ranking, setRanking] = useState<'total' | 'intensity'>('total'),
+    [layers, setLayers] = useState<GeoLayerId[]>([]);
+  const toggleLayer = (l: GeoLayerId) =>
+    setLayers(cur => (cur.includes(l) ? cur.filter(x => x !== l) : [...cur, l]));
   const id = params.get('factory'),
     selected = factories.find(f => f.id === id);
   // Sector and ranking are also honoured from the query string so the Copilot (and any deep
   // link) can drive the map without this state being lifted out of the page.
   const sectorParam = params.get('sector'),
-    rankParam = params.get('rank');
+    rankParam = params.get('rank'),
+    layersParam = params.get('layers');
+  useEffect(() => {
+    if (layersParam === null) return;
+    const valid = Object.keys(geoLayers) as GeoLayerId[];
+    setLayers(layersParam.split(',').filter((l): l is GeoLayerId => valid.includes(l as GeoLayerId)));
+  }, [layersParam]);
   useEffect(() => {
     if (sectorParam && (sectors as string[]).includes(sectorParam)) setSector(sectorParam);
   }, [sectorParam]);
@@ -76,7 +86,7 @@ export default function CommandMap() {
 
   return (
     <div className="map-page" data-testid="command-map">
-      <FactoryMap full factories={filtered} selected={id} onSelect={openWith} />
+      <FactoryMap full factories={filtered} selected={id} onSelect={openWith} layers={layers} />
       <aside
         className={`map-drawer ${panelOpen ? 'open' : ''}`}
         data-testid="map-panel"
@@ -218,6 +228,37 @@ export default function CommandMap() {
               </select>
             </div>
           </div>
+
+          <div className="drawer-section-head">
+            <span className="drawer-section-label">Context layers</span>
+            {layers.length > 0 && (
+              <button className="drawer-reset" data-testid="map-clear-layers" onClick={() => setLayers([])}>
+                <RotateCcw size={12} />
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="layer-chips" role="group" aria-label="Map context layers" data-testid="map-layers">
+            {(Object.keys(geoLayers) as GeoLayerId[]).map(l => (
+              <button
+                key={l}
+                type="button"
+                className="layer-chip"
+                aria-pressed={layers.includes(l)}
+                data-testid={`layer-${l}`}
+                title={geoLayers[l].note}
+                onClick={() => toggleLayer(l)}
+              >
+                <span aria-hidden="true">{geoLayers[l].emoji}</span>
+                {geoLayers[l].label}
+              </button>
+            ))}
+          </div>
+          {layers.length > 0 && (
+            <p className="layer-note" data-testid="map-layer-note">
+              {layers.map(l => geoLayers[l].note).join(' ')} Sources are on each marker.
+            </p>
+          )}
 
           {id && !selected && (
             <div className="notice warning" role="alert" data-testid="invalid-map-selection">

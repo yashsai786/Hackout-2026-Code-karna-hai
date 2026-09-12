@@ -33,7 +33,7 @@ screen after step 2 is derived from what you typed in step 2.
 
 | | Do this | What it proves |
 | --- | --- | --- |
-| 1 | Land on the **Command Map**. 15 plants, 4.28M tCO₂e in view. | The portfolio view a decision-maker starts from. |
+| 1 | Land on the **Command Map**. 12 plants in view; switch on ☀️ solar, 🌬️ wind, 💧 water-stress and ♻️ recycling-hub layers. | The portfolio in context — each layer cites its public source on the marker. |
 | 2 | **Factories → + Add factory.** You land on its profile. Enter production, four emission sources, material streams. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
 | 3 | **Save baseline.** | The plant now has a validated baseline, hotspots, costs and a confidence grade. |
 | 4 | **Interventions.** Measures are now ranked *for this plant*, each with reduction, operating savings, **return per year** and upfront capex. | Advice derived from this plant's hotspots, not its sector. |

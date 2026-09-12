@@ -1300,3 +1300,89 @@ textarea {
   font-size: 10px;
   color: var(--muted);
 }
+
+/* ---------- Map context layers ---------- */
+/* Factory markers carry a glyph so every layer reads as a pictogram; the sector colour stays as the ring. */
+.map-dot > .map-dot-glyph {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+.map-dot.selected > .map-dot-glyph {
+  width: auto;
+  height: auto;
+  font-size: 18px;
+}
+.geo-marker {
+  background: transparent;
+  border: 0;
+}
+.geo-badge {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--layer-colour) 14%, #ffffff);
+  border: 1.5px solid color-mix(in srgb, var(--layer-colour) 55%, transparent);
+  box-shadow: 0 1px 3px #20457126;
+}
+.geo-badge:hover {
+  transform: scale(1.12);
+}
+.geo-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+.geo-tooltip {
+  max-width: 260px;
+  white-space: normal;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.geo-tooltip small {
+  color: var(--muted);
+}
+.map-legend .legend-layer b {
+  font-size: 11px;
+  margin-right: 5px;
+  font-weight: 400;
+}
+.layer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+.layer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 11px;
+  color: #4b5b73;
+  cursor: pointer;
+}
+.layer-chip:hover {
+  border-color: #b9c6dc;
+}
+.layer-chip[aria-pressed='true'] {
+  background: #eef3ff;
+  border-color: #9fb6ea;
+  color: #1d47a8;
+  font-weight: 550;
+}
+.layer-note {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 4px 0 10px;
+}

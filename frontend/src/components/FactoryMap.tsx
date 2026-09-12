@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, ZoomControl, useMap } from 'r
 import L from 'leaflet';
 import { Maximize, RotateCcw, MapPinOff } from 'lucide-react';
 import type { Factory } from '../domain/types';
+import { geoPoints, geoLayers, layerOffset, type GeoLayerId } from '../domain/geo';
 import { Btn, compact } from './Primitives';
 import 'leaflet/dist/leaflet.css';
 
@@ -59,16 +60,20 @@ export const FactoryMap = ({
   selected,
   onSelect,
   full = false,
+  layers = [],
 }: {
   factories: Factory[];
   selected: string | null;
   onSelect: (id: string) => void;
   full?: boolean;
+  /** Context layers to draw around the plants. Empty by default: the plants are the subject. */
+  layers?: GeoLayerId[];
 }) => {
   const [failed, setFailed] = useState(false),
     [attempt, setAttempt] = useState(0),
     successes = useRef(0);
   const points = useMemo(() => factories.filter(f => f.coordinates), [factories]);
+  const context = useMemo(() => geoPoints.filter(g => layers.includes(g.layer)), [layers]);
   useEffect(() => {
     successes.current = 0;
     setFailed(false);
@@ -120,7 +125,7 @@ export const FactoryMap = ({
             alt={f.name}
             icon={L.divIcon({
               className: 'factory-marker',
-              html: `<span data-testid="map-marker-${f.id}" class="map-dot ${selected === f.id ? 'selected' : ''}" style="--marker-color:${colors[f.sector]}"><span></span></span>`,
+              html: `<span data-testid="map-marker-${f.id}" class="map-dot ${selected === f.id ? 'selected' : ''}" style="--marker-color:${colors[f.sector]}"><span class="map-dot-glyph" aria-hidden="true">🏭</span></span>`,
               iconSize: [34, 34],
               iconAnchor: [17, 17],
             })}
@@ -140,6 +145,41 @@ export const FactoryMap = ({
             </Tooltip>
           </Marker>
         ))}
+        {context.map(g => {
+          const layer = geoLayers[g.layer];
+          const [dlat, dlng] = layerOffset[g.layer];
+          return (
+            <Marker
+              key={g.id}
+              position={[g.coordinates[0] + dlat, g.coordinates[1] + dlng]}
+              title={`${layer.label}: ${g.name}`}
+              alt={`${layer.label}: ${g.name}`}
+              interactive={true}
+              keyboard={false}
+              zIndexOffset={-100}
+              icon={L.divIcon({
+                className: 'geo-marker',
+                html: `<span data-testid="geo-${g.id}" class="geo-badge geo-${g.layer}" style="--layer-colour:${layer.colour}"><span class="geo-emoji" aria-hidden="true">${layer.emoji}</span></span>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+              })}
+            >
+              <Tooltip direction="top" offset={[0, -12]} className="geo-tooltip">
+                <strong>
+                  {layer.emoji} {g.name}
+                </strong>
+                <br />
+                {g.detail}
+                <br />
+                <em>{g.relevance}</em>
+                <br />
+                <small>
+                  {g.level === 'state' ? 'State-level classification' : 'Indicative hub'} · {g.source}
+                </small>
+              </Tooltip>
+            </Marker>
+          );
+        })}
       </MapContainer>
       {failed && (
         <div className="map-outage" role="status" data-testid="map-outage">
@@ -157,6 +197,12 @@ export const FactoryMap = ({
           <span key={s}>
             <i style={{ background: c }} />
             {s}
+          </span>
+        ))}
+        {layers.map(l => (
+          <span key={l} className="legend-layer" data-testid={`legend-${l}`}>
+            <b aria-hidden="true">{geoLayers[l].emoji}</b>
+            {geoLayers[l].label}
           </span>
         ))}
       </div>

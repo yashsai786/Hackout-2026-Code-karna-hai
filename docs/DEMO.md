@@ -26,7 +26,13 @@ Works offline. No API key needed for anything below except the optional Copilot 
 > emissions* — it's *which part of my process is leaking, and what do I do instead*. An audit costs
 > lakhs and takes months, so most plants never get one."
 
-Land on the **Command Map**. 15 plants, 4.28M tCO₂e, four sectors.
+Land on the **Command Map**. 12 plants, 4.13M tCO₂e, four sectors.
+
+Switch on two **context layers** in the drawer — ☀️ Solar resource and ♻️ Recycling hubs.
+
+> "The plants are the subject, but a decision is made in context. Solar ranks first in Gujarat and
+> Rajasthan because the resource is there; a recycled-feedstock measure is realistic where scrap is
+> actually traded. Every marker carries its source — state-level assessments, not invented sites."
 
 > "This is the view a decision-maker starts from. But the product isn't the map — watch what happens
 > when a plant that isn't on it walks in."
