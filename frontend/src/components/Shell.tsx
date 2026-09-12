@@ -45,7 +45,7 @@ export const Shell = ({ children }: { children: ReactNode }) => {
         </nav>
         <div className="nav-right">
           {isMap && (
-            <button className={`nav-controls ${panelOpen ? 'active' : ''}`} data-testid="toggle-map-panel" aria-pressed={panelOpen} onClick={() => setPanelOpen(!panelOpen)}>
+            <button className={`nav-controls ${panelOpen ? 'active' : ''}`} data-testid="toggle-map-panel" aria-pressed={panelOpen} aria-label={panelOpen ? 'Hide map controls' : 'Show map controls'} onClick={() => setPanelOpen(!panelOpen)}>
               <SlidersHorizontal size={16} /><span>Controls</span>
             </button>
           )}

@@ -6,6 +6,7 @@ import './index.css';
 import './styles.css';
 import './styles-accessibility.css';
 import './styles-nav.css';
+import './styles-copilot.css';
 
 class Boundary extends React.Component<{ children: React.ReactNode }, { error: boolean }> {
   state = { error: false };

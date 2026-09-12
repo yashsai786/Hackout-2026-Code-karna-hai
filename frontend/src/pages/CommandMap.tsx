@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MapPin, RotateCcw, ArrowUpRight, X, Factory, Cloud, TrendingDown, Layers3 } from 'lucide-react';
 import { useSession } from '../state/SessionContext';
 import { useMapPanel } from '../state/ui';
 import { sectors, interventions, sources, sourceLabels } from '../domain/fixtures';
-import { intensity, scenario, sum } from '../domain/calculations';
+import { intensity, scenario, sum, eligibleFor } from '../domain/calculations';
 import { compact, fmt, Tag, Empty, Btn } from '../components/Primitives';
 import { FactoryMap } from '../components/FactoryMap';
 import { CommandBar } from '../components/CommandBar';
@@ -17,12 +17,24 @@ export default function CommandMap() {
   const [params, setParams] = useSearchParams();
   const [sector, setSector] = useState('all'), [state, setState] = useState('all'), [ranking, setRanking] = useState<'total' | 'intensity'>('total');
   const id = params.get('factory'), selected = factories.find(f => f.id === id);
+  // Sector and ranking are also honoured from the query string so the Copilot (and any deep
+  // link) can drive the map without this state being lifted out of the page.
+  const sectorParam = params.get('sector'), rankParam = params.get('rank');
+  useEffect(() => { if (sectorParam && (sectors as string[]).includes(sectorParam)) setSector(sectorParam); }, [sectorParam]);
+  useEffect(() => { if (rankParam === 'total' || rankParam === 'intensity') setRanking(rankParam); }, [rankParam]);
   const reset = () => { setSector('all'); setState('all'); };
   const openWith = (fid: string) => { setParams({ factory: fid }); setPanelOpen(true); };
   const select = (fid: string) => { reset(); openWith(fid); };
+  const selectedCard = useRef<HTMLDivElement>(null);
+  // Bring the selected card into view: the ranking list below it is long, so a pick made while scrolled down would otherwise give no visible feedback.
+  useEffect(() => {
+    if (!selected || !panelOpen) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    selectedCard.current?.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+  }, [id, panelOpen, selected]);
   const filtered = useMemo(() => factories.filter(f => (sector === 'all' || f.sector === sector) && (state === 'all' || f.state === state)), [factories, sector, state]);
   const ranked = [...filtered].filter(f => f.baseline !== null).sort((a, b) => ranking === 'total' ? b.baseline! - a.baseline! : intensity(b)! - intensity(a)!);
-  const potential = sum(filtered.filter(f => f.baseline !== null).map(f => Math.max(...interventions.filter(i => i.sectors.includes(f.sector)).map(i => scenario(f, [i], 100).reduction))));
+  const potential = sum(filtered.filter(f => f.baseline !== null).map(f => Math.max(...interventions.filter(i => eligibleFor(f, i)).map(i => scenario(f, [i], 100).reduction))));
   const total = sum(filtered.map(f => f.baseline || 0));
   const hasFilters = sector !== 'all' || state !== 'all';
 
@@ -63,7 +75,7 @@ export default function CommandMap() {
           {id && !selected && <div className="notice warning" role="alert" data-testid="invalid-map-selection">That factory is not in this session.<Btn data-testid="clear-invalid-selection" onClick={() => setParams({})}>Clear</Btn></div>}
 
           {selected && (
-            <div className="drawer-selected" data-testid="selected-factory">
+            <div className="drawer-selected" data-testid="selected-factory" ref={selectedCard}>
               <div className="drawer-selected-head"><div><div className="eyebrow">SELECTED FACTORY</div><h2 data-testid="selected-factory-name">{selected.name}</h2></div>{selected.baseline === null ? <Tag id="selected-awaiting" tone="warning">Awaiting baseline</Tag> : <Tag id="selected-sector" tone={selected.sector.toLowerCase()}>{selected.sector}</Tag>}</div>
               <p className="location"><MapPin size={13} />{selected.city}, {selected.state}</p>
               {selected.baseline !== null && (
@@ -95,7 +107,7 @@ export default function CommandMap() {
           </div>
 
           <div className="drawer-foot">
-            <Link to="/intake" className="app-btn primary" data-testid="map-add-data"><span>+</span>Add factory data</Link>
+            <Link to={selected && selected.baseline === null ? `/factories/${selected.id}/profile` : id ? `/intake?factory=${id}` : '/intake'} className="app-btn primary" data-testid="map-add-data"><span>+</span>{selected && selected.baseline === null ? 'Set up baseline' : 'Add factory data'}</Link>
             <Link to="/factories" className="text-link" data-testid="view-all-factories">Factory index<ArrowUpRight size={14} /></Link>
           </div>
         </div>

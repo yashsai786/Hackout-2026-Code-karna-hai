@@ -1,11 +1,13 @@
 export type Sector = 'Steel' | 'Cement' | 'Textiles' | 'Chemicals';
 export type Confidence = 'High' | 'Medium' | 'Low';
 export type Source = 'fuel' | 'electricity' | 'process' | 'waste';
+export type MaterialStream = { name: string; tonnesPerYear: number; costPerTonne: number; recycledShare: number };
 export type Factory = {
   id: string; name: string; city: string; state: string; sector: Sector;
   coordinates: [number, number] | null; baseline: number | null; production: number | null;
   confidence: Confidence; costs: Record<Source, number>; hotspots: Record<Source, number>;
   wasteTonnes: number; exportShare: number; history: { month: string; emissions: number }[];
+  materials: MaterialStream[];
   readiness: { baselineDocumented: boolean; additionality: boolean; monitoring: boolean; independentReview: boolean };
 };
 export type Intervention = {
@@ -13,6 +15,10 @@ export type Intervention = {
   source: Source; reductionRate: number; costSavingRate: number; capex: number;
   annualOpex: number; duration: string; complexity: 'Low' | 'Medium' | 'High';
   compatibleWith: string[]; steps: string[];
+  /** Addressable tCO2e at the reference plant the published capex is priced for. */
+  addressableRef: number;
+  /** Circular measures only make sense once the site has declared what it buys and recovers. */
+  requiresMaterial?: boolean;
 };
 export type LedgerStatus = 'Estimated' | 'In review' | 'Issued';
 export type LedgerEntry = {

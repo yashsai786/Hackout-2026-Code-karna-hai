@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "leakpoint-frontend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "yarn@1.22.22", "start"],
+      "cwd": "frontend",
+      "port": 3000,
+      "url": "http://127.0.0.1:3000"
+    }
+  ]
+}

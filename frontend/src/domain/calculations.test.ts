@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { factories, interventions, processFlows, sources } from './fixtures';
+import { factories, interventions, processFlows, sources, reference } from './fixtures';
+import { extractionSamples } from './extraction';
 import { parseCommand } from './commands';
-import { scenario, extractEstimate, portfolioTotals, csvExport } from './calculations';
+import { scenario, extractEstimate, portfolioTotals, csvExport, capexFor, eligibleFor } from './calculations';
 import { validateFixtures } from './validation';
 import { generateDigest } from './digest';
 import type { LedgerEntry } from './types';
@@ -35,6 +36,22 @@ describe('fixtures and validation', () => {
   it('passes global fixture validation rules', () => {
     expect(validateFixtures()).toBe(true);
   });
+
+  it('prices every source in its own physical unit', () => {
+    // The screen shows wasteTonnes beside the waste cost, so the two must agree on the rate.
+    factories.forEach(f => {
+      expect(f.costs.waste).toBeCloseTo(f.wasteTonnes * reference.wasteRateINR, 0);
+      expect(f.costs.fuel).toBeCloseTo(f.hotspots.fuel / reference.coalFactor * reference.coalRateINR, 0);
+      expect(f.costs.electricity).toBeCloseTo(f.hotspots.electricity / reference.gridFactor * reference.gridRateINR, 0);
+    });
+  });
+
+  it('quotes the same unit prices on the intake screen as in the cost model', () => {
+    const byId = Object.fromEntries(extractionSamples.map(s => [s.id, s]));
+    expect(byId.electricity.rate).toBe(reference.gridRateINR);
+    expect(byId.fuel.rate).toBe(reference.coalRateINR);
+    expect(byId.waste.rate).toBe(reference.wasteRateINR);
+  });
 });
 
 describe('scenario math and guardrails', () => {
@@ -57,12 +74,25 @@ describe('scenario math and guardrails', () => {
     expect(r.operatingSavings).toBeCloseTo(expectedGross - expectedOpex, 6);
   });
 
-  it('keeps capex fixed and 0 adoption gives negative capex cashflow with no payback', () => {
+  it('keeps capex fixed across adoption and 0 adoption gives no payback', () => {
     const r = scenario(bhilai, [wasteHeat], 0);
-    expect(r.capex).toBe(wasteHeat.capex);
+    const full = scenario(bhilai, [wasteHeat], 100);
+    expect(r.capex).toBe(full.capex);                 // the invariant: capex never scales with adoption
+    expect(r.capex).toBe(capexFor(bhilai, wasteHeat));
     expect(r.paybackMonths).toBeNull();
-    expect(r.cashflow[0].value).toBe(-wasteHeat.capex);
-    expect(r.cashflow[36].value).toBe(-wasteHeat.capex);
+    expect(r.cashflow[0].value).toBe(-r.capex);
+    expect(r.cashflow[36].value).toBe(-r.capex);
+  });
+
+  it('prices capex by the size of the opportunity, not per plant equally', () => {
+    const small = factories.find(f => f.id === 'tiruppur-textiles')!;
+    const solarMeasure = interventions.find(i => i.id === 'solar')!;
+    const big = scenario(bhilai, [solarMeasure], 100).capex;
+    const little = scenario(small, [solarMeasure], 100).capex;
+    expect(big).toBeGreaterThan(little);              // 842,000 tCO2e must not cost the same as 58,000
+    // Sub-linear: ten times the opportunity costs far less than ten times the money.
+    const ratio = (bhilai.hotspots.electricity) / (small.hotspots.electricity);
+    expect(big / little).toBeLessThan(ratio);
   });
 
   it('returns immediate payback for zero-capex measure with positive savings', () => {
@@ -82,6 +112,16 @@ describe('scenario math and guardrails', () => {
     expect(() => scenario(bhilai, [wasteHeat], Number.NaN)).toThrow('Adoption must be between 0 and 100.');
     expect(() => scenario(bhilai, [wasteHeat], -1)).toThrow('Adoption must be between 0 and 100.');
     expect(() => scenario(bhilai, [wasteHeat], 101)).toThrow('Adoption must be between 0 and 100.');
+  });
+
+  it('offers circular material measures only to sites that declared a material stream', () => {
+    const circular = interventions.find(i => i.id === 'material-substitution')!;
+    expect(circular.requiresMaterial).toBe(true);
+    const withStreams = factories.find(f => f.materials.length > 0)!;
+    expect(eligibleFor(withStreams, circular)).toBe(true);
+    const bare = { ...withStreams, materials: [] };
+    expect(eligibleFor(bare, circular)).toBe(false);
+    expect(() => scenario(bare, [circular], 100)).toThrow('This combination is not compatible.');
   });
 
   it('rejects non-eligible or overlapping bundle combinations', () => {
@@ -152,7 +192,7 @@ describe('portfolio, parser, csv, extraction, digest', () => {
     ];
     const digest = generateDigest(factories, ledger, []);
     expect(digest).toContain('12 factories; 12 illustrative baselines; 0 awaiting baseline.');
-    expect(digest).toContain('1 scenario records; 0 simulated Issued labels, none registry verified.');
+    expect(digest).toContain('1 scenario record; 0 simulated Issued labels, none registry verified.');
     expect(digest).toContain('Realised savings: ₹0');
     expect(digest).toContain('Generated from the displayed session dataset using a fixed template, not AI.');
   });
