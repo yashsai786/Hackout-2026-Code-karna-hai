@@ -67,8 +67,10 @@ Point at the on-screen disclosure:
 
 Declare a material stream. **Save baseline.**
 
-If a judge asks about data entry: open **Intake**, drop a photo of a bill, and the local OCR reads it
-on the machine — each figure with the line it came from and the confidence it was read at.
+If a judge asks about data entry: open **Intake** and drop one of the five documents in
+[`docs/demo-files/`](demo-files/README.md) — a CSV bill, a spreadsheet register, a text manifest, a
+text-layer PDF invoice, and a photographed bill the local OCR reads on the machine. Each figure shows
+the line or column it came from, and the photo its confidence.
 
 ## 3 · Why the ranking is now different (45 seconds)
 

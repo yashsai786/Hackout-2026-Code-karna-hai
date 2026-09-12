@@ -24,7 +24,9 @@ QUANTITY_HEADERS = {
     "fuel": ["coal", "tonnes", "tons", "mt", "quantity", "qty", "fuel", "diesel", "furnace oil", "fo", "litres", "liters"],
     "waste": ["waste", "sludge", "effluent", "disposed", "tonnes", "tons", "qty", "quantity"],
 }
-COST_HEADERS = ["amount", "total", "cost", "charges", "inr", "rs", "₹", "value", "bill", "payable"]
+COST_HEADERS = ["amount", "total", "cost", "charges", "value", "bill", "payable", "inr", "rs", "₹"]
+# A unit price is not a cost. Columns whose header says so are never summed as one.
+RATE_WORDS = ["rate", "price", "per ", "/t", "/kl", "/kwh", "per unit", "tariff"]
 DATE_HEADERS = ["date", "period", "month", "billing", "invoice date"]
 UNIT_RE = re.compile(r"([\d][\d,]*(?:\.\d+)?)\s*(kwh|kvah|units?|mt|tonnes?|tons?|kg|kl|litres?|liters?|ltrs?)\b", re.I)
 AMOUNT_RE = re.compile(r"(?:₹|rs\.?|inr)\s*([\d][\d,]*(?:\.\d+)?)|([\d][\d,]*(?:\.\d+)?)\s*(?:₹|inr|rupees)", re.I)
@@ -71,25 +73,29 @@ def _period_from_text(text: str) -> Optional[str]:
     return f"{m.group(6)}-{m.group(5)}"
 
 
-def _from_table(frame, hint: Optional[str], filename: str) -> Dict[str, Any]:
+def _from_table(frame, hint: Optional[str], filename: str, sheet: str = "") -> Dict[str, Any]:
     import pandas as pd  # noqa: F401
 
     cols = {c: str(c).strip().lower() for c in frame.columns}
     joined = " ".join(cols.values()) + " " + " ".join(map(str, frame.head(20).to_numpy().ravel()))
-    kind = _guess_kind(joined, hint)
+    # The document's own name is evidence too: "coal-purchase-register.xlsx" with a sheet called
+    # "Coal register" is a fuel record even if no cell spells the word.
+    kind = _guess_kind(f"{filename} {sheet} {joined}", hint)
     evidence: List[str] = []
     warnings: List[str] = []
 
-    def pick(keys: List[str]):
-        for c, low in cols.items():
-            if any(k in low for k in keys):
-                series = frame[c].map(_num).dropna()
-                if len(series):
-                    return c, series
+    def pick(keys: List[str], exclude: List[str] = ()):
+        # Headers are tried in the order the keyword list gives, so "amount" beats a stray "inr".
+        for key in keys:
+            for c, low in cols.items():
+                if key in low and not any(x in low for x in exclude):
+                    series = frame[c].map(_num).dropna()
+                    if len(series):
+                        return c, series
         return None, None
 
     qcol, qseries = pick(QUANTITY_HEADERS.get(kind, sum(QUANTITY_HEADERS.values(), [])))
-    ccol, cseries = pick(COST_HEADERS)
+    ccol, cseries = pick(COST_HEADERS, exclude=RATE_WORDS)
     dcol = next((c for c, low in cols.items() if any(k in low for k in DATE_HEADERS)), None)
 
     quantity = float(qseries.sum()) if qseries is not None else None
@@ -102,9 +108,14 @@ def _from_table(frame, hint: Optional[str], filename: str) -> Dict[str, Any]:
         evidence.append(f"Cost: column “{ccol}”, {len(cseries)} row(s) summed = ₹{cost:,.0f}")
     period = None
     if dcol is not None:
-        period = _period_from_text(" ".join(map(str, frame[dcol].astype(str).head(50))))
-        if period:
-            evidence.append(f"Period: column “{dcol}” → {period}")
+        periods = sorted({p for p in (_period_from_text(str(v)) for v in frame[dcol].astype(str).head(200)) if p})
+        if periods:
+            period = periods[-1]
+            if len(periods) > 1:
+                evidence.append(f"Period: column “{dcol}” spans {len(periods)} periods ({periods[0]} to {periods[-1]}); quantity and cost are the sum, recorded against {period}")
+                warnings.append(f"This file covers {len(periods)} periods. Record it as one entry, or split the rows if you want one record per month.")
+            else:
+                evidence.append(f"Period: column “{dcol}” → {period}")
     if period is None:
         period = _period_from_text(filename) or _period_from_text(joined)
     confidence = "High" if quantity is not None and cost is not None else "Medium" if quantity is not None else "Low"
@@ -162,8 +173,9 @@ def extract(data: bytes, filename: str, content_type: str, hint: Optional[str] =
         return {"filename": filename, **_from_table(frame, hint, filename)}
     if name.endswith((".xlsx", ".xls")) or "spreadsheet" in ct or "excel" in ct:
         import pandas as pd
-        frame = pd.read_excel(io.BytesIO(data))
-        return {"filename": filename, **_from_table(frame, hint, filename)}
+        book = pd.read_excel(io.BytesIO(data), sheet_name=None)
+        sheet, frame = next(iter(book.items()))
+        return {"filename": filename, "sheet": str(sheet), **_from_table(frame, hint, filename, str(sheet))}
     if name.endswith(".pdf") or ct == "application/pdf":
         from pypdf import PdfReader
         reader = PdfReader(io.BytesIO(data))

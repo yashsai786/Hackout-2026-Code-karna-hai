@@ -37,7 +37,7 @@ in step 2, and every number on every screen comes from the API.
 | | Do this | What it proves |
 | --- | --- | --- |
 | 1 | Land on the **Command Map**. 12 plants. Type into **Navigate**: *"show solar and recycling hubs"*, then *"take me to Bhilai Steel Works"*. | One bar drives the whole map, offline, with no model involved. |
-| 2 | **Factories → + Add factory.** You land on its profile. Enter production and the four emission sources — or drop a photo of a bill on **Intake** and let the local OCR read it. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
+| 2 | **Factories → + Add factory.** You land on its profile. Enter production and the four emission sources — or drop one of the five sample documents in [`docs/demo-files/`](docs/demo-files/README.md) on **Intake**, including a photographed bill the local OCR reads. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
 | 3 | **Save baseline.** | The plant now has a baseline, hotspots, costs and a confidence grade — persisted in MongoDB. |
 | 4 | **Interventions.** Measures ranked *for this plant*: reduction, operating savings, **return per year**, capex. | Advice derived from this plant's hotspots, not its sector. |
 | 5 | Open one. Move the **adoption slider**. | Reduction, payback and a 36-month cashflow recompute live. |

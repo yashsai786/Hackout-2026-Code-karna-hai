@@ -158,7 +158,9 @@ def test_extracts_figures_from_a_csv_bill_with_evidence():
     out = res.json()
     assert out['method'] == 'table' and out['source_type'] == 'electricity'
     assert out['quantity'] == 185000 and out['cost_inr'] == 1387500
-    assert out['period'] == '2025-11' and any('Units consumed' in e for e in out['evidence'])
+    # Two billing months summed: recorded against the latest, and the evidence says so.
+    assert out['period'] == '2025-12' and any('Units consumed' in e for e in out['evidence'])
+    assert any('spans 2 periods' in e for e in out['evidence'])
 
 
 def _bill_png(lines):
@@ -230,3 +232,23 @@ def test_state_is_never_empty():
     """Before anything is saved the API serves the seed dataset, flagged as such."""
     s = requests.get(f'{BASE_URL}/api/v1/state', timeout=10).json()
     assert len(s['factories']) >= 12 and all(k in s for k in ('ledger', 'intake', 'inbox'))
+
+
+def test_spreadsheet_register_uses_amount_not_rate_and_reads_its_name():
+    import io, openpyxl
+    wb = openpyxl.Workbook(); ws = wb.active; ws.title = 'Coal register'
+    ws.append(['Invoice date', 'Supplier', 'Grade', 'Quantity (tonnes)', 'Rate (INR/t)', 'Amount (INR)'])
+    ws.append(['2025-12-03', 'SECL Korba', 'G11', 6200, 8150, 50530000])
+    ws.append(['2025-12-19', 'SECL Korba', 'G11', 6400, 8150, 52160000])
+    buf = io.BytesIO(); wb.save(buf)
+    out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('coal-purchase-register-2025-12.xlsx', buf.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}, timeout=20).json()
+    assert out['source_type'] == 'fuel', out
+    assert out['quantity'] == 12600 and out['cost_inr'] == 102690000, out
+    assert out['period'] == '2025-12'
+
+
+def test_multi_month_csv_says_it_is_a_sum():
+    csv = ("Billing period,Units consumed (kWh),Amount (INR)\n2025-10,100,1000\n2025-11,200,2000\n2025-12,300,3000\n").encode()
+    out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('bill.csv', csv, 'text/csv')}, timeout=20).json()
+    assert out['quantity'] == 600 and out['cost_inr'] == 6000 and out['period'] == '2025-12'
+    assert any('spans 3 periods' in e for e in out['evidence']) and out['warnings']
