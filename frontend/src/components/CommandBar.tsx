@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { CornerDownLeft, Mic, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { parseCommand } from '../domain/commands';
+import {
+  parseCommand,
+  resultFromIntent,
+  extractIntent,
+  intentPrompt,
+  type CommandResult,
+} from '../domain/commands';
+import { useSettings } from '../state/settings';
 import type { Factory, Sector } from '../domain/types';
 import { Btn } from './Primitives';
 export const CommandBar = ({
@@ -23,6 +30,8 @@ export const CommandBar = ({
     [listening, setListening] = useState(false);
   const recognition = useRef<any>(null),
     navigate = useNavigate();
+  const { connected, runChat } = useSettings();
+  const [thinking, setThinking] = useState(false);
   useEffect(
     () => () => {
       if (recognition.current) {
@@ -34,9 +43,43 @@ export const CommandBar = ({
     },
     [],
   );
-  function run(input: string) {
+  // Rules first — deterministic and offline. Only what they cannot place goes to the model behind
+  // the Settings key, and the model may only choose from targets we list; see resultFromIntent.
+  async function run(input: string) {
     setChoices([]);
-    const result = parseCommand(input, factories);
+    const ruled = parseCommand(input, factories);
+    if (ruled.type !== 'unknown') return apply(ruled);
+    if (!connected) {
+      setMessage(
+        'No rule matched. Connect an OpenRouter key in Settings to ask in plain language, or try “Find Bhilai”, “Show cement factories”, “Highest intensity”, or “Go to ledger”.',
+      );
+      return;
+    }
+    setThinking(true);
+    setMessage('Asking the model…');
+    try {
+      const reply = await runChat({
+        messages: [
+          { role: 'system', content: intentPrompt(factories) },
+          { role: 'user', content: input },
+        ],
+        toolChoice: 'none',
+        temperature: 0,
+        maxTokens: 120,
+      });
+      const result = resultFromIntent(extractIntent(reply.text), factories);
+      if (result.type === 'unknown')
+        setMessage(
+          'That does not map to a screen. Ask the Copilot for analysis, or name a factory, sector or page.',
+        );
+      else apply(result);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'The model could not be reached.');
+    } finally {
+      setThinking(false);
+    }
+  }
+  function apply(result: CommandResult) {
     if (result.type === 'route') navigate(result.path);
     else if (result.type === 'factory') {
       select(result.id);
