@@ -132,7 +132,7 @@ except the browser's own calls to OpenRouter with the operator's key.
 
 | If this is down | What happens |
 | --- | --- |
-| The API | The app computes its own split and labels it as such |
+| The API | Every screen renders from the browser cache; the footer says so; Estimate, analysis and intake show one sentence naming the fix |
 | The model artefact | `/api/v1/model` reports `loaded: false` with the command to fix it; `run.sh` retrains automatically |
 | No LLM key | Everything works; the Copilot explains what it needs |
 | OCR engine missing | Tables, text and text-layer PDFs still read; a photo returns a 503 naming the package |

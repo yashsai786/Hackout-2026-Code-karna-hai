@@ -159,6 +159,16 @@ And one structural addition: every answer is scanned for numbers no tool returne
 conversation; any such figure is shown beneath the answer as the model's own arithmetic. The first
 live run produced exactly one — "~112%" — which is what the check exists to catch.
 
+## Degraded modes, verified from the UI
+
+Each was set up for real, swept across every route with axe and a render probe, and put back:
+
+| Mode | How it was produced | What a user sees |
+| --- | --- | --- |
+| No AI key | Operator settings moved aside in MongoDB | Every page unchanged; Copilot says *No model connected*; the command bar's unmatched phrases point to Settings; Narrate explains what it needs |
+| Model artefact missing | `hotspots.joblib` moved, API restarted | Every page unchanged; the profile's Estimate says *Model artefact not loaded. Run python ai/train.py — you can still enter your figures by hand*; the analysis page shows the same with a re-run button |
+| API down | uvicorn stopped | Every page renders from the cache with 0 violations, 12 plants on the map, alerts retained; footer reads *Data: this browser only — API unreachable*; Estimate, analysis and intake each show one sentence naming the fix (`./run.sh`) instead of the browser's "Failed to fetch", which this sweep found and replaced |
+
 ## What is still authored rather than measured
 
 Stated so a judge does not discover it. The 12 seed plants, their annual figures and the three seed

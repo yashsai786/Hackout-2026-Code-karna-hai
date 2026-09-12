@@ -39,9 +39,22 @@ export type ModelCard = {
   hint?: string;
 };
 
+export const OFFLINE_MESSAGE =
+  'The Leakpoint API is not reachable. Start it with ./run.sh — the app keeps working from its cache meanwhile.';
+
+/** A network failure or timeout reads as one plain sentence, never the browser's "Failed to fetch". */
+async function reach(input: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') throw e; // a caller's own cancellation
+    throw new Error(OFFLINE_MESSAGE);
+  }
+}
+
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('No API URL configured.');
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await reach(`${BASE}${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
     credentials: 'omit',
@@ -172,7 +185,7 @@ export async function extractDocument(
   const form = new FormData();
   form.append('file', file, file.name);
   if (hint) form.append('hint', hint);
-  const res = await fetch(`${BASE}/api/v1/intake/extract`, {
+  const res = await reach(`${BASE}/api/v1/intake/extract`, {
     method: 'POST',
     body: form,
     credentials: 'omit',
