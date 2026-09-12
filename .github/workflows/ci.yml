@@ -43,8 +43,10 @@ jobs:
       - name: Retraining still beats the sector table it replaced
         # The product's central claim. If a change to train.py stopped the model earning its place,
         # this fails rather than shipping a model that is no better than the lookup table.
+        # train.py resolves models/ from its own location, so run it from the repository root and
+        # read metrics.json from the same place — the check must not depend on the working directory.
         run: |
-          cd ai && python train.py
+          python ai/train.py
           python - <<'PY'
           import json, sys
           m = json.load(open('ai/models/metrics.json'))
