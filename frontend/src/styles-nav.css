@@ -1049,8 +1049,11 @@ textarea {
 .key-field input {
   border: 0 !important;
   height: 42px !important;
-  padding: 0 !important;
+  padding: 0 8px 0 2px !important;
   background: transparent !important;
+  /* The wrapper owns the focus ring; a second ring on the input read as a nested box. */
+  outline: none !important;
+  box-shadow: none !important;
   flex: 1;
   min-width: 0;
   font-size: 12px;
@@ -1385,4 +1388,25 @@ textarea {
   color: var(--muted);
   line-height: 1.5;
   margin: 4px 0 10px;
+}
+
+/* Settings: keep the browser's autofill button out of the key field — the eye toggle beside it is
+   the only affordance we want there. */
+.key-field input::-webkit-credentials-auto-fill-button,
+.key-field input::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  pointer-events: none;
+}
+.key-field input:focus,
+.key-field input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.model-gated {
+  margin-top: 11px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
 }

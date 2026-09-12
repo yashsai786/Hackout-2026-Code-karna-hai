@@ -108,6 +108,8 @@ export const SettingsDialog = () => {
                       placeholder="sk-or-v1-..."
                       autoComplete="off"
                       spellCheck={false}
+                      data-1p-ignore
+                      data-lpignore="true"
                     />
                     <button
                       type="button"
@@ -190,71 +192,83 @@ export const SettingsDialog = () => {
               <div>
                 <h3>Default model</h3>
                 <p>
-                  {modelsLoading
-                    ? 'Loading the live catalogue…'
-                    : modelsError
-                      ? 'Could not load models.'
-                      : `${toolModelCount} of ${models.length} models can call tools.`}
+                  {!connected
+                    ? 'Loads from OpenRouter once a key is connected.'
+                    : modelsLoading
+                      ? 'Loading the live catalogue…'
+                      : modelsError
+                        ? 'Could not load models.'
+                        : `${toolModelCount} of ${models.length} models can call tools.`}
                 </p>
               </div>
             </header>
-            <label className="model-filter">
-              <input
-                type="checkbox"
-                data-testid="models-tools-only"
-                checked={toolsOnly}
-                onChange={e => setToolsOnly(e.target.checked)}
-              />
-              <span>Only models that can call tools</span>
-            </label>
-            <div className="model-search">
-              <Search size={16} />
-              <input
-                data-testid="model-search"
-                value={q}
-                onChange={e => setQ(e.target.value)}
-                placeholder="Search models…"
-                aria-label="Search models"
-              />
-            </div>
-            <div className="model-list" data-testid="model-list">
-              {modelsError ? (
-                <p className="model-empty">
-                  {modelsError}{' '}
-                  <button className="text-link" data-testid="retry-models" onClick={loadModels}>
-                    Retry
-                  </button>
-                </p>
-              ) : shown.length === 0 ? (
-                <p className="model-empty">{modelsLoading ? 'Loading…' : 'No models match your search.'}</p>
-              ) : (
-                shown.map(m => (
-                  <button
-                    key={m.id}
-                    className={`model-row ${defaultModel === m.id ? 'selected' : ''}`}
-                    data-testid={tid(m.id)}
-                    onClick={() => setDefaultModel(m.id)}
-                  >
-                    <div>
-                      <strong>{m.name}</strong>
-                      <span>{m.id}</span>
-                    </div>
-                    <span className="model-row-end">
-                      {!supportsTools(m) && (
-                        <Tag id={`model-notools-${tid(m.id)}`} tone="warning">
-                          No tools
-                        </Tag>
-                      )}
-                      {defaultModel === m.id && <Check size={16} />}
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-            {filtered.length > shown.length && (
-              <p className="settings-note settings-more">
-                Showing first {shown.length} of {filtered.length}. Refine your search to see more.
+            {!connected ? (
+              <p className="model-empty model-gated" data-testid="model-gated">
+                Connect a key above to choose a model. The Copilot needs one that can call tools.
               </p>
+            ) : (
+              <>
+                <label className="model-filter">
+                  <input
+                    type="checkbox"
+                    data-testid="models-tools-only"
+                    checked={toolsOnly}
+                    onChange={e => setToolsOnly(e.target.checked)}
+                  />
+                  <span>Only models that can call tools</span>
+                </label>
+                <div className="model-search">
+                  <Search size={16} />
+                  <input
+                    data-testid="model-search"
+                    value={q}
+                    onChange={e => setQ(e.target.value)}
+                    placeholder="Search models…"
+                    aria-label="Search models"
+                  />
+                </div>
+                <div className="model-list" data-testid="model-list">
+                  {modelsError ? (
+                    <p className="model-empty">
+                      {modelsError}{' '}
+                      <button className="text-link" data-testid="retry-models" onClick={loadModels}>
+                        Retry
+                      </button>
+                    </p>
+                  ) : shown.length === 0 ? (
+                    <p className="model-empty">
+                      {modelsLoading ? 'Loading…' : 'No models match your search.'}
+                    </p>
+                  ) : (
+                    shown.map(m => (
+                      <button
+                        key={m.id}
+                        className={`model-row ${defaultModel === m.id ? 'selected' : ''}`}
+                        data-testid={tid(m.id)}
+                        onClick={() => setDefaultModel(m.id)}
+                      >
+                        <div>
+                          <strong>{m.name}</strong>
+                          <span>{m.id}</span>
+                        </div>
+                        <span className="model-row-end">
+                          {!supportsTools(m) && (
+                            <Tag id={`model-notools-${tid(m.id)}`} tone="warning">
+                              No tools
+                            </Tag>
+                          )}
+                          {defaultModel === m.id && <Check size={16} />}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                {filtered.length > shown.length && (
+                  <p className="settings-note settings-more">
+                    Showing first {shown.length} of {filtered.length}. Refine your search to see more.
+                  </p>
+                )}
+              </>
             )}
             <p className="model-current" data-testid="default-model">
               Default model: <strong>{defaultModel || 'none selected'}</strong>
