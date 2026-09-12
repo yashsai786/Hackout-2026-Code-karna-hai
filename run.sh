@@ -29,7 +29,8 @@ echo
 # take the newest interpreter available rather than whatever `python3` happens to point at — on
 # macOS that is often the 3.9 shipped with the Command Line Tools.
 PY_BIN=""
-for c in python3.13 python3.12 python3.11 python3; do
+# 3.12 and 3.11 first: the local OCR engine's onnxruntime wheel does not exist for 3.13 yet.
+for c in python3.12 python3.11 python3.13 python3; do
   command -v "$c" >/dev/null || continue
   if "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
     PY_BIN="$c"; break
@@ -59,6 +60,10 @@ if [ ! -d "$VENV" ]; then
 fi
 info "installing Python dependencies"
 "$VENV/bin/pip" install --quiet -r backend/requirements.txt
+# OCR is optional: on a Python without an onnxruntime wheel the rest of the product still runs.
+if ! "$VENV/bin/pip" install --quiet -r backend/requirements-ocr.txt 2>/dev/null; then
+  info "local OCR not installed on this Python ($("$VENV/bin/python" -V 2>&1)); photos and scans will be refused, everything else works"
+fi
 
 # The trained artefact is committed so a clone demonstrates offline. Retrain only if it is absent
 # or unreadable — an artefact pickled by a different scikit-learn will not load, and a silent

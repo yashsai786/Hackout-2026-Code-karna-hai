@@ -21,8 +21,9 @@ Industrial Emission Leak-Point Detector & Circular Alternative Recommender · Ha
 ```
 
 One command. Creates the environment, installs both tiers, starts the API and the web app, prints
-both URLs. **No API key, no database, no cloud account.** Node 18+ and Python 3.11+ are the only
-prerequisites; the trained model is committed, so nothing needs training first.
+both URLs. **No API key, no database, no cloud account.** Node 18+ and Python 3.11 or 3.12 are the only
+prerequisites; the trained model is committed, so nothing needs training first. (Python 3.13 works too,
+minus the local OCR engine, whose runtime has no 3.13 wheel yet — `run.sh` says so and carries on.)
 
 `run.sh` also starts a Homebrew MongoDB if one is installed; without one the API keeps the same data in
 a JSON file and says so. No toolchain? `docker compose up --build` (API, web and MongoDB), then open
