@@ -1,249 +1,209 @@
-# Leakpoint — Industrial Emission Leak-Point Detector & Circular Alternative Recommender
+<div align="center">
 
-**HackOut 2026 · Team "Code Karna hai" · Team Leader: Gangwani Yash**
+# Leakpoint
 
-> Your factory is leaking money. We show you exactly where.
+**Find where a factory's carbon actually comes from. Then show what to do about it, what it costs,
+and when it pays back.**
 
-Leakpoint identifies where an industrial site's carbon and cash escape, recommends circular
-and efficiency alternatives, quantifies each one in rupees and tonnes, and ranks every
-enrolled factory on one live map.
+Industrial Emission Leak-Point Detector & Circular Alternative Recommender · HackOut 2026 · Team Code Karna Hai
+
+[![CI](https://github.com/yashsai786/Hackout-2026-Code-karna-hai/actions/workflows/ci.yml/badge.svg)](https://github.com/yashsai786/Hackout-2026-Code-karna-hai/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+</div>
 
 ---
 
-## 1. The problem
+## Run it
 
-Small and medium industries cannot see where their carbon originates.
+```bash
+./run.sh
+```
 
-- MSMEs account for an estimated **25 percent of India's industrial emissions**, yet only
-  **31 percent** use energy-efficient products.
-- Owners cannot identify which process, fuel, or material drives their footprint, so no
-  action follows.
-- Exporters face carbon border taxes that already translate into lost orders and
-  compliance risk.
+One command. Creates the environment, installs both tiers, starts the API and the web app, prints
+both URLs. **No API key, no database, no cloud account.** Node 18+ and Python 3.9+ are the only
+prerequisites; the trained model is committed, so nothing needs training first.
 
-*Sources cited in the pitch: CSEP (2026); Business Standard, January 2026.*
+No toolchain? `docker compose up --build`, then open <http://localhost:3000>.
 
-## 2. The proposition
+## See it work in 60 seconds
 
-Photograph a bill. Receive a ranked, costed action plan. No integrations, no consultants,
-no delay.
+The demonstration is one continuous path, not a tour of disconnected screens. Every number on every
+screen after step 2 is derived from what you typed in step 2.
 
-| Stage | Outcome |
-| --- | --- |
-| **Identify** | Top emission sources across energy, materials, and waste |
-| **Recommend** | Circular interventions with capital cost and CO2 saved |
-| **Quantify** | Loss avoided, payback month, and carbon-credit potential |
-| **Rank** | Every factory on one live carbon leaderboard |
-
-### The five-step pipeline
-
-1. **Extract** — read invoices, bills, and records; normalise vendor, line item, date, and quantity.
-2. **Detect** — match entities to asset, site, and category records; benchmark against the CEA CO2 baseline to flag hotspots.
-3. **Recommend** — rank interventions by feasibility, impact, and fit.
-4. **Quantify** — translate each action into savings, emissions avoided, cost, payback, and credit upside.
-5. **Track** — monitor milestones and KPI targets, and verify realised impact.
-
-## 3. What the application does today
-
-Leakpoint is a browser-only, session-scoped decision console. Every figure derives from
-typed fixtures and deterministic TypeScript calculations, and every screen labels its
-output as an illustrative estimate.
-
-| Route | Screen | Capability |
+| | Do this | What it proves |
 | --- | --- | --- |
-| `/` | **Command Map** | Full-page Leaflet map over OpenStreetMap tiles, sector and state filters, total-versus-intensity ranking, natural-language command bar, tile-outage fallback |
-| `/intake` | **Data Intake** | Three-stage source capture with simulated extraction, editable factors, and per-source estimates |
-| `/factories` | **Factories** | Twelve-site index with search and sector filters |
-| `/factories/:id/profile` | **Process & Baseline** | Enter production, per-source activity, factors, costs and material streams; optionally estimate the split with the model. This is what turns a new factory into an analysable one |
-| `/factories/:id` | **Factory Detail** | Hotspots by source, twelve-month history chart, intensity, export exposure, process flow, recommended starting points |
-| `/interventions` | **Interventions** | Catalogue of six measures with sector eligibility |
-| `/interventions/:id` | **Scenario Builder** | Adoption slider (0–100 percent), compatible bundles, reduction, payback, and a 36-month cash-flow chart |
-| `/credits` | **Credits** | Conditional credit volume, reference price band, and a four-step verification readiness meter |
-| `/ledger` | **Ledger** | Session record of estimates, status progression, deduplicated portfolio totals, and CSV export |
-| `/alerts` | **Alerts** | In-app inbox, notification preferences, and a rule-based portfolio digest |
+| 1 | Land on the **Command Map**. 15 plants, 4.28M tCO₂e in view. | The portfolio view a decision-maker starts from. |
+| 2 | **Intake → Add a factory.** Enter production, four emission sources, material streams. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
+| 3 | **Save baseline.** | The plant now has a validated baseline, hotspots, costs and a confidence grade. |
+| 4 | **Interventions.** Measures are now ranked *for this plant*, each with reduction, operating savings, **return per year** and upfront capex. | Advice derived from this plant's hotspots, not its sector. |
+| 5 | Open one. Move the **adoption slider**. | Reduction, payback and a 36-month cashflow recompute live. |
+| 6 | **Record to ledger.** | The commitment is tracked, with portfolio totals and a CSV export. |
+| 7 | Open the **Copilot** (bottom right). Ask *"which plant should I fix first and why?"* | Every figure it quotes links to the screen that proves it. |
 
-### Feature highlights from the pitch
+**The comparison worth showing a judge.** Run step 2 twice — once as a coal **BF-BOF** steelworks,
+once as an electric **EAF** mini-mill. Before this model both were told the same thing. Now:
 
-- **God-Eye map with carbon ranking** — implemented on Leaflet and OpenStreetMap, no API key required.
-- **Current versus recommended comparison** — implemented as the adoption slider and comparison bars.
-- **Payback and break-even timeline** — implemented as a 36-month cumulative cash-flow projection.
-- **Price impact and loss estimation** — implemented as gross export-exposure scenarios for steel and cement.
-- **Carbon credit potential** — implemented as a conditional volume and reference price band, explicitly not issuance.
-- **Bill and meter photo auto-extraction** — **not yet implemented**; see section 5.
+| | Primary hotspot | Top recommendation |
+| --- | --- | --- |
+| Bhilai, BF-BOF, coal, 28 yrs | thermal fuel ≈ 50% | waste-heat recovery |
+| Raipur, EAF, electric, 9 yrs | electricity ≈ 78% | on-site solar |
 
-## 4. Architecture
+Same sector. Different plants. Different advice. That is the whole product in one screenshot.
 
-### Current repository
+Presenting it? The full four-minute script, with the questions judges ask and the answers, is in
+**[`docs/DEMO.md`](docs/DEMO.md)**.
 
-```
-frontend/               React 19 + TypeScript + Vite
-  src/pages/            10 route components, including the process & baseline page
-  src/components/       Shell, FactoryMap, CommandBar, Charts, shadcn/ui primitives
-  src/domain/           Types, fixtures, calculations, extraction, digest, commands, validation
-  src/copilot/          Grounded tool registry, agent loop and system prompt for the Copilot
-  src/state/            Session, UI, and settings React contexts (in memory only)
-  src/lib/openrouter.ts Optional session-only OpenRouter key validation and model listing
-backend/                FastAPI service
-  server.py             health, model card, and the hotspot prediction endpoint
-  train.py              fits the model, prints held-out error against the sector-table baseline
-  models/               hotspots.joblib + metrics.json (committed so the demo runs offline)
-tests/, test_reports/   Automated UI sweep artefacts and pytest output
-memory/PRD.md           Product requirements and change log
-```
+---
 
-| Layer | Technology in this repository |
+## The problem
+
+India has roughly 63 million MSMEs. For an industrial SME, the emissions question is not *what is my
+total* — it is *which part of my process is leaking, and what do I do instead*. A consultant-led audit
+costs lakhs and takes months, so most plants never get one and act on nothing.
+
+Leakpoint replaces the first and most expensive step of that audit: locating the leak point.
+
+## What it does, against the brief
+
+| The problem statement asks for | Where it lives |
 | --- | --- |
-| Frontend | React 19, TypeScript, Vite, React Router 7 |
-| Styling | Tailwind CSS plus hand-authored editorial CSS, shadcn/ui and Radix primitives |
-| Map | Leaflet and react-leaflet over OpenStreetMap tiles |
-| Charts | Recharts |
-| Calculations | Deterministic TypeScript in `src/domain/calculations.ts` |
-| Backend | Python FastAPI serving the hotspot model (`/api/v1/hotspots`, `/api/v1/model`) |
-| Machine learning | scikit-learn `HistGradientBoostingRegressor`, artefact in `backend/models/` |
-| Storage | Browser `localStorage`; a reset control in Settings restores the demonstration dataset |
+| Ingest plant data and process parameters | **Intake** and the **factory profile** — production, four emission sources, material streams, coordinates |
+| Detect emission leak points | **Hotspot disaggregation** — the ML model splits the baseline across fuel, electricity, process and waste |
+| Quantify against a baseline | Baseline, intensity per tonne, and a confidence grade derived from data completeness |
+| Recommend circular alternatives | **Interventions** — sector- and material-eligible measures, ranked by this plant's hotspots |
+| Show the economics | Reduction, operating savings, return per year, capex scaled by the six-tenths rule, payback, 36-month cashflow |
+| Track what was decided | **Ledger** — recorded commitments, portfolio totals, CSV export |
+| Surface exposure and value | **Credits** — carbon-credit potential; CBAM exposure for steel and cement exporters |
 
-### Hardened business rules
+Ten routes, all reachable, none decorative: Command Map · Intake · Factories · Factory detail ·
+Factory profile · Interventions · Intervention detail · Credits · Ledger · Alerts.
 
-Encoded in [`calculations.ts`](frontend/src/domain/calculations.ts) and enforced by
-[`validation.ts`](frontend/src/domain/validation.ts):
+---
 
-- Capital expenditure remains **fixed at every adoption level**; it is never annualised away.
-- Overlapping interventions **never sum**. Only compatible measures on different emission
-  sources combine, verified symmetrically.
-- A new factory starts as **Awaiting baseline** with no coordinates, emissions, rank, or
-  recommendation.
-- The portfolio ledger **deduplicates** by factory and source, retaining the largest
-  reduction and its matching savings.
-- Export exposure applies to steel and cement only, and reports gross scenarios rather
-  than tax liability.
+## The machine learning
 
-### Reference constants
-
-Fixture-dated 01 February 2026, and not live quotations: EUR 75 per tCO2, INR 90 per EUR,
-credits INR 600–1,500 per unit, grid factor 0.000716 tCO2e/kWh, coal 2.42 tCO2e/tonne,
-mixed waste 0.45 tCO2e/tonne.
-
-## 5. Pitch deck compared with the current build
-
-| Deck claim | Status |
-| --- | --- |
-| React, Leaflet, OpenStreetMap frontend | **Implemented.** D3.js is not used; Recharts covers the charting need |
-| Python FastAPI REST services | **Implemented.** `POST /api/v1/hotspots` serves the model, `GET /api/v1/model` returns its card |
-| scikit-learn model | **Implemented, with one honest caveat.** A `HistGradientBoostingRegressor` predicts the emission split from plant attributes. It is fitted on a **synthetic** cohort (see below), which is stated in the API response, on screen, and here |
-| Vision model with OCR fallback | **Not implemented.** Intake extraction is a simulated flow over editable sample fixtures and says so on screen. Do not claim photo extraction on stage |
-| Cloud PostgreSQL with PostGIS | **Not implemented.** Session state persists to browser `localStorage`; there is no server database and nothing geospatial |
-| 62,868 tCO2 avoided and INR 58.58 crore saved across 345 MSMEs | **External benchmark, not product output.** Present it as sector context, never as something this build produced |
-| CCTS credit generation, EUR 87–90/t at the EU border | **Contextual references.** Credit figures in the app are conditional illustrations, never issuance |
-
-### The machine learning, stated plainly
-
-**What it does.** Until now the split of emissions across thermal fuel, electricity, process and
-waste came from a constant table keyed on sector alone, so every steel plant in the country received
-an identical breakdown and therefore identical advice. The model predicts that split from what an
-operator can actually answer — sector, process route, primary fuel, grid region, annual production,
-energy spend, plant age, headcount — none of which determines the answer outright. That is a real
-supervised learning problem, not arithmetic in disguise.
-
-**How good it is.** Held-out mean absolute error per share, against the constant sector table it
-replaces:
+**The model names the correct primary emission hotspot for 90.9% of held-out plants. The
+constant sector table it replaced manages 78.0%.**
 
 | | Model | Sector table |
 | --- | --- | --- |
-| Mean share MAE | **0.036–0.015 (mean 0.028)** | 0.093 |
+| Correct primary hotspot | **90.9%** | 78.0% |
+| Mean absolute error across four shares | **0.0280** | 0.0935 |
 
-That is **70.1% closer** than the table. Reproduce with `python backend/train.py`, which prints the
-comparison and writes `backend/models/metrics.json`.
-
-**What it was trained on — read this before presenting.** The right training source is plant-level
-Indian disclosure (BEE PAT designated-consumer filings, the CEA CO2 baseline database, India GHG
-Programme inventories, CDM and Gold Standard PDDs). That data is not redistributable and was not
-assembled in the hackathon window. The shipped model is therefore fitted on a **synthetic cohort of
-8,000 plants** generated from published per-tonne intensity ranges and process
-archetypes with plant-to-plant variation. The API returns `training: "synthetic"`, and the app says
-so wherever a prediction is shown. A disclosed synthetic fit survives questioning; an undisclosed
-one does not.
-
-## 6. Running the project
-
-### Prerequisites
-
-- Node.js 20 or later with Yarn 1.22
-- Python 3.11 or later (only if the backend foundation is required)
-
-### Frontend
-
-Copy the tracked example. Vite fails fast when any of these variables are absent:
+`HistGradientBoostingRegressor`, five heads, eight features a plant manager can answer without an
+audit. Reproduce it in about thirty seconds:
 
 ```bash
-cp frontend/.env.example frontend/.env
+python ai/train.py
 ```
 
-Then install and start the application:
+**It is trained on synthetic data, and the product says so everywhere** — in the training script, in
+the API response (`training: "synthetic"`), in a test, and on screen wherever a prediction appears.
+Real plant-level Indian disclosures exist but are not redistributable. What the synthetic fit
+demonstrates honestly is that the model recovers plant-level structure the constant table cannot,
+scored on the same held-out plants. Full disclosure, feature list and limitations:
+**[`ai/README.md`](ai/README.md)**.
 
-```bash
-cd frontend && yarn install && yarn start
+## Why the numbers can be trusted
+
+This is the part that separates Leakpoint from a chatbot with a spreadsheet behind it.
+
+- **The Copilot cannot do arithmetic.** It has no calculator. It calls the same domain functions the
+  screens call, and reports what they return. It is incapable of inventing a figure, because it never
+  computes one.
+- **Every figure is traceable.** Each number in an answer links to the screen that produced it.
+- **Every formula is printable.** No hidden coefficients; emission factors and tariffs live in one
+  reference table.
+- **Estimates are labelled as estimates.** Confidence grades come from data completeness, and
+  recorded ledger entries are explicitly marked as unverified by any registry.
+- **Writes need confirmation.** The Copilot may only record to the ledger through a two-phase
+  confirmation, so it can never commit on your behalf by accident.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph web["frontend/ — React 19 + TypeScript"]
+    UI["10 routes"]
+    DOM["domain/ — every calculation, one source of truth"]
+    COP["copilot/ — grounded LLM assistant"]
+    UI --> DOM
+    COP --> DOM
+  end
+  subgraph api["backend/ — FastAPI"]
+    EP["/api/v1/hotspots · /api/v1/model · /api/health"]
+  end
+  subgraph ml["ai/ — scikit-learn"]
+    M["hotspot disaggregation<br/>5 heads · 8 features"]
+  end
+  UI -- "estimate my split" --> EP
+  EP --> M
+  COP -. "reads only, never computes" .-> DOM
 ```
 
-| Command | Purpose |
+**Two kinds of intelligence, deliberately kept apart.**
+
+| | What it is | Where |
+| --- | --- | --- |
+| **The model** | Trained scikit-learn regressor. Predicts the emission split. | `ai/` |
+| **The Copilot** | LLM assistant. Explains, compares, navigates. Computes nothing. | `frontend/src/copilot/` |
+
+The Copilot is not under `ai/` on purpose: it holds no learned parameters and is not allowed to
+produce a number of its own. Keeping them separate is what makes the trust claim above enforceable
+rather than aspirational. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Layout
+
+```
+ai/          the trained model — train.py, models/, model card, tests
+backend/     FastAPI service that serves it
+frontend/    React app — src/domain/ holds every calculation
+docs/        architecture, demo script, quality evidence
+run.sh       start everything
+```
+
+## Technology
+
+React 19 · TypeScript (strict) · Vite · React Router 7 · Leaflet · Recharts · FastAPI · Pydantic v2 ·
+scikit-learn · Vitest · pytest · GitHub Actions
+
+## Quality
+
+| | |
 | --- | --- |
-| `yarn start` | Vite development server on `FRONTEND_PORT` |
-| `yarn build` | TypeScript check (`tsc --noEmit`) followed by a production build |
-| `yarn test` | Vitest unit suite over `src/domain` |
+| Frontend tests | 45 (domain calculations, Copilot tool contracts) |
+| Model tests | 7 (behaviour, provenance, the claim above) |
+| API contract tests | 6 (against a live service) |
+| Accessibility | 0 WCAG 2.1 A/AA violations across all routes (axe-core) |
+| Types | `strict: true`, no `any` escapes, enforced in CI |
+| Formatting | Prettier, enforced in CI |
 
-### Backend (optional)
+CI runs all of it, plus a retrain that **fails the build if the model stops beating the sector
+table** — the product's central claim is a test, not a sentence in a README.
 
-```bash
-cd backend && pip install -r requirements.txt
-python train.py          # fits the model and prints its held-out error; writes models/hotspots.joblib
-uvicorn server:app --port 8001
-```
+Evidence and method: [`docs/QUALITY.md`](docs/QUALITY.md).
 
-Copy `backend/.env.example` to `backend/.env`. MongoDB is optional and unused by the
-application. **The frontend works fully without the backend** — the estimator is an optional
-assist and every other figure is computed in the browser.
+## Honest limits
 
-## 7. Testing
+- **The model is trained on synthetic data.** See above; it is disclosed everywhere it is used.
+- **Emission factors are national averages.** Real plants should substitute metered figures; the app
+  labels which numbers are measured and which are estimated.
+- **Ledger entries are not registry-verified.** Every export says so explicitly.
+- **Session data is local.** State persists in the browser, not on a server — deliberate for a
+  demonstration, and the reason no plant data leaves the machine.
+- **The Copilot needs a key.** Bring your own OpenRouter key in Settings. Everything else works
+  without one, including the model.
 
-- **Unit** — 16 Vitest cases over scenario mathematics, compatibility, portfolio
-  deduplication, and CSV injection escaping: `frontend/src/domain/calculations.test.ts`.
-- **Fixture invariants** — `validateFixtures()` asserts unique identifiers, hotspot totals
-  matching baselines, twelve-month history sums, coordinate bounds, and symmetric
-  intervention compatibility.
-- **Backend** — `backend/tests/test_health.py` verifies both health endpoints, skipping
-  when `REACT_APP_BACKEND_URL` is unset.
-- **Automated UI sweeps** — `test_reports/iteration_1.json` (55 of 55 checks) and
-  `test_reports/iteration_2.json` (all core flows across the nine routes), with
-  screenshots in `test_reports/screenshots/`.
+## Next
 
-Run the frontend suite:
+Vision and OCR intake (read a utility bill or a nameplate instead of typing it) · real BEE PAT
+training data · anomaly detection on month-over-month drift · budget-constrained portfolio optimiser.
 
-```bash
-cd frontend && yarn test
-```
+---
 
-## 8. Privacy and data handling
+<div align="center">
 
-- No account, authentication, or credential storage exists.
-- Document uploads capture the **file name and size only**. Contents are never read,
-  parsed, or transmitted.
-- An optional OpenRouter API key is held in memory for the session, never persisted, and
-  never sent to a Leakpoint server.
-- Session state clears on refresh, which restores the demonstration dataset.
+MIT licensed. Built for HackOut 2026.
 
-## 9. What is left
-
-1. Replace the synthetic training cohort with real plant-level disclosures and re-fit.
-2. Real document extraction for the Intake stage, replacing the simulated flow.
-3. Server-side persistence and multi-user accounts; today the session lives in one browser.
-4. Roles for the consultant and regulator users named in the brief — today everything is
-   single-operator.
-5. Calibrate the capex scale exponent against realised project costs rather than the six-tenths rule.
-
-## 10. Disclaimer
-
-Leakpoint is a hackathon demonstration. All emissions, savings, exposure, payback, and
-credit figures are illustrative estimates produced from dated fixtures and simplified
-assumptions. They do not constitute an emissions inventory, a CBAM tax assessment, a
-verified reduction claim, financial advice, or an offer to sell carbon credits.
-Site-specific engineering and independent verification remain mandatory before any
-investment decision.
+</div>
