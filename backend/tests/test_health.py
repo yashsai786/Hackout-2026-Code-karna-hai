@@ -1,12 +1,12 @@
-"""API contract tests. Skipped unless REACT_APP_BACKEND_URL points at a running service."""
+"""API contract tests. Skipped unless LEAKPOINT_API_URL points at a running service."""
 import os
 
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL')
+BASE_URL = os.environ.get('LEAKPOINT_API_URL')
 SOURCES = ['fuel', 'electricity', 'process', 'waste']
-pytestmark = pytest.mark.skipif(not BASE_URL, reason='REACT_APP_BACKEND_URL is not set')
+pytestmark = pytest.mark.skipif(not BASE_URL, reason='LEAKPOINT_API_URL is not set')
 
 
 @pytest.fixture(scope='session')
@@ -33,7 +33,7 @@ def test_health_reports_model_state(endpoint: str, api: requests.Session):
 
 def test_model_card_declares_its_training_and_baseline(api: requests.Session):
     data = api.get(url('/api/v1/model'), timeout=20).json()
-    assert data['loaded'] is True, 'run train.py to produce models/hotspots.joblib'
+    assert data['loaded'] is True, 'run `python ai/train.py` to produce ai/models/hotspots.joblib'
     # The honesty contract: the card must say what it was trained on.
     assert data['training'] == 'synthetic'
     assert data['model_share_mae'] < data['sector_table_share_mae'], 'the model must beat the sector table it replaces'

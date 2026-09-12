@@ -1,6 +1,6 @@
 """Leakpoint API.
 
-Serves the hotspot-disaggregation model (see train.py) plus a health endpoint. The frontend degrades
+Serves the hotspot-disaggregation model (trained by ai/train.py) plus a health endpoint. The frontend degrades
 to its own arithmetic if this service is unavailable, so the demonstration never depends on it.
 """
 from contextlib import asynccontextmanager
@@ -16,7 +16,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 load_dotenv(Path(__file__).parent / '.env')
 
-MODEL_PATH = Path(__file__).parent / 'models' / 'hotspots.joblib'
+# The model lives in ai/ so the learned component is reviewable on its own; the API only loads it.
+MODEL_PATH = Path(__file__).resolve().parent.parent / 'ai' / 'models' / 'hotspots.joblib'
 SOURCES = ['fuel', 'electricity', 'process', 'waste']
 state: Dict = {'bundle': None, 'db': None}
 
@@ -106,7 +107,7 @@ async def model_card() -> Dict:
     """What the model is, what it was trained on, and how it compares to the table it replaces."""
     bundle = state['bundle']
     if bundle is None:
-        return {'loaded': False, 'hint': 'Run `python train.py` to produce models/hotspots.joblib.'}
+        return {'loaded': False, 'hint': 'Run `python ai/train.py` to produce ai/models/hotspots.joblib.'}
     metrics = bundle.get('metrics', {})
     return {
         'loaded': True,
@@ -130,7 +131,7 @@ async def predict_hotspots(body: HotspotRequest) -> HotspotResponse:
     bundle = state['bundle']
     if bundle is None:
         from fastapi import HTTPException
-        raise HTTPException(status_code=503, detail='Model artefact not loaded. Run train.py.')
+        raise HTTPException(status_code=503, detail='Model artefact not loaded. Run `python ai/train.py`.')
 
     import numpy as np
     import pandas as pd
