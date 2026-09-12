@@ -1,0 +1,31 @@
+# Leakpoint, with no toolchain on the host:
+#
+#   docker compose up --build
+#
+# Then open http://localhost:3000. Prefer ./run.sh if you have Node and Python — it is faster and
+# gives you hot reload.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - '8001:8001'
+    environment:
+      CORS_ORIGINS: http://localhost:3000
+    healthcheck:
+      test: ['CMD-SHELL', 'python -c "import urllib.request;urllib.request.urlopen(\"http://localhost:8001/api/health\")"']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        REACT_APP_BACKEND_URL: http://localhost:8001
+    ports:
+      - '3000:80'
+    depends_on:
+      - api
