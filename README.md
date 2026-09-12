@@ -21,7 +21,7 @@ Industrial Emission Leak-Point Detector & Circular Alternative Recommender · Ha
 ```
 
 One command. Creates the environment, installs both tiers, starts the API and the web app, prints
-both URLs. **No API key, no database, no cloud account.** Node 18+ and Python 3.9+ are the only
+both URLs. **No API key, no database, no cloud account.** Node 18+ and Python 3.11+ are the only
 prerequisites; the trained model is committed, so nothing needs training first.
 
 No toolchain? `docker compose up --build`, then open <http://localhost:3000>.

@@ -25,7 +25,19 @@ bold "Leakpoint"
 echo
 
 # ---------------------------------------------------------------- prerequisites
-command -v python3 >/dev/null || die "python3 is required (3.9 or newer)."
+# scikit-learn 1.9 (which the committed model artefact is pickled by) requires Python 3.11+, so
+# take the newest interpreter available rather than whatever `python3` happens to point at — on
+# macOS that is often the 3.9 shipped with the Command Line Tools.
+PY_BIN=""
+for c in python3.13 python3.12 python3.11 python3; do
+  command -v "$c" >/dev/null || continue
+  if "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+    PY_BIN="$c"; break
+  fi
+done
+[ -n "$PY_BIN" ] || die "Python 3.11 or newer is required (found: $(python3 -V 2>&1 || echo none)).
+  macOS:  brew install python@3.12
+  Ubuntu: sudo apt install python3.12 python3.12-venv"
 # npm is canonical here because package-lock.json is what we commit and what CI installs from.
 if command -v npm >/dev/null; then PKG_INSTALL="npm install --silent --no-audit --no-fund"; PKG_RUN="npm run"
 elif command -v yarn >/dev/null; then PKG_INSTALL="yarn install --silent"; PKG_RUN="yarn"
@@ -42,7 +54,7 @@ done
 # ---------------------------------------------------------------- python tier
 if [ ! -d "$VENV" ]; then
   info "creating the Python environment (one time, ~1 minute)"
-  python3 -m venv "$VENV"
+  "$PY_BIN" -m venv "$VENV"
   "$VENV/bin/pip" install --quiet --upgrade pip
 fi
 info "installing Python dependencies"
