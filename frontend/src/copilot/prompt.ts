@@ -7,12 +7,26 @@ import { readinessCount } from '../domain/calculations';
  * and answer "which factories are in Gujarat?" without a round trip. Anything *derived* still has
  * to come from a tool — that is rule 2, and it is the whole credibility guarantee.
  */
-export function buildSystemPrompt(ctx: { factories: Factory[]; ledger: LedgerEntry[]; intake: IntakeRecord[]; toolsEnabled: boolean }): string {
-  const roster = ctx.factories.map(f => f.baseline === null
-    ? `${f.id} | ${f.name} | ${f.city}, ${f.state} | ${f.sector} | awaiting baseline`
-    : `${f.id} | ${f.name} | ${f.city}, ${f.state} | ${f.sector} | ${f.baseline} tCO2e/yr | ${f.production} t/yr | ${f.confidence} confidence | readiness ${readinessCount(f)}/4`).join('\n');
+export function buildSystemPrompt(ctx: {
+  factories: Factory[];
+  ledger: LedgerEntry[];
+  intake: IntakeRecord[];
+  toolsEnabled: boolean;
+}): string {
+  const roster = ctx.factories
+    .map(f =>
+      f.baseline === null
+        ? `${f.id} | ${f.name} | ${f.city}, ${f.state} | ${f.sector} | awaiting baseline`
+        : `${f.id} | ${f.name} | ${f.city}, ${f.state} | ${f.sector} | ${f.baseline} tCO2e/yr | ${f.production} t/yr | ${f.confidence} confidence | readiness ${readinessCount(f)}/4`,
+    )
+    .join('\n');
 
-  const measures = interventions.map(i => `${i.id} | ${i.name} | ${i.category} | ${sourceLabels[i.source]} | ${i.sectors.join('/')} | capex ₹${i.capex}`).join('\n');
+  const measures = interventions
+    .map(
+      i =>
+        `${i.id} | ${i.name} | ${i.category} | ${sourceLabels[i.source]} | ${i.sectors.join('/')} | capex ₹${i.capex}`,
+    )
+    .join('\n');
 
   const arithmetic = ctx.toolsEnabled
     ? `2. THE ARITHMETIC RULE, ABSOLUTE. You may not state, estimate, derive, interpolate or round any number that a tool did not return in this conversation. You have no arithmetic ability here. If a figure is needed, call a tool. If no tool provides it, say the demonstration does not calculate it. Never add, subtract, average or scale tool outputs yourself — if the user wants a total, ask a tool for the total. The roster below is the one exception: those stored values may be quoted directly.`

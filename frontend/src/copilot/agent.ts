@@ -8,7 +8,11 @@ export const TOOL_RESULT_CAP = 6000;
 const HISTORY_LIMIT = 12;
 
 export type AgentDeps = {
-  chat: (messages: ChatMessage[], tools: ToolDef[] | undefined, signal?: AbortSignal) => Promise<StreamResult>;
+  chat: (
+    messages: ChatMessage[],
+    tools: ToolDef[] | undefined,
+    signal?: AbortSignal,
+  ) => Promise<StreamResult>;
   ctx: ToolContext;
   signal?: AbortSignal;
   toolsEnabled?: boolean;
@@ -30,15 +34,22 @@ export function sanitiseHistory(messages: ChatMessage[]): ChatMessage[] {
   const out: ChatMessage[] = [];
   for (const m of messages) {
     if (m.role === 'tool') {
-      if (out.some(p => p.role === 'assistant' && p.tool_calls?.some(c => c.id === m.tool_call_id))) out.push(m);
+      if (out.some(p => p.role === 'assistant' && p.tool_calls?.some(c => c.id === m.tool_call_id)))
+        out.push(m);
       continue;
     }
     out.push(m);
   }
   for (;;) {
     const last = out[out.length - 1];
-    if (last?.role === 'assistant' && last.tool_calls?.length &&
-        !last.tool_calls.every(c => out.some(m => m.role === 'tool' && m.tool_call_id === c.id))) { out.pop(); continue; }
+    if (
+      last?.role === 'assistant' &&
+      last.tool_calls?.length &&
+      !last.tool_calls.every(c => out.some(m => m.role === 'tool' && m.tool_call_id === c.id))
+    ) {
+      out.pop();
+      continue;
+    }
     break;
   }
   return out;
@@ -50,7 +61,7 @@ export function capHistory(messages: ChatMessage[]): ChatMessage[] {
   const rest = messages.filter(m => m.role !== 'system');
   if (rest.length <= HISTORY_LIMIT) return messages;
   let start = rest.length - HISTORY_LIMIT;
-  while (start > 0 && rest[start].role === 'tool') start--;          // never start on an orphan result
+  while (start > 0 && rest[start].role === 'tool') start--; // never start on an orphan result
   const head = rest[start];
   if (head?.role === 'assistant' && head.tool_calls?.length) start++;
   return [...system, ...rest.slice(start)];
@@ -65,7 +76,11 @@ export async function runAgent(history: ChatMessage[], deps: AgentDeps): Promise
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
     const budgetSpent = iteration === MAX_ITERATIONS - 1;
     if (budgetSpent) {
-      messages.push({ role: 'user', content: 'Tool budget reached. Answer now using only the figures already returned by tools. Do not request more tools.' });
+      messages.push({
+        role: 'user',
+        content:
+          'Tool budget reached. Answer now using only the figures already returned by tools. Do not request more tools.',
+      });
     }
 
     let result: StreamResult;
@@ -95,13 +110,22 @@ export async function runAgent(history: ChatMessage[], deps: AgentDeps): Promise
       if (deps.signal?.aborted) return { text, messages: sanitiseHistory(messages), toolRuns, stopped: true };
       const started = Date.now();
       let args: Record<string, unknown> = {};
-      try { args = JSON.parse(call.function.arguments || '{}'); } catch { /* runTool reports it */ }
+      try {
+        args = JSON.parse(call.function.arguments || '{}');
+      } catch {
+        /* runTool reports it */
+      }
       deps.onToolStart?.({ id: call.id, name: call.function.name, args });
       const outcome = runTool(call.function.name, call.function.arguments, deps.ctx);
       const run: ToolRun = {
-        id: call.id, name: call.function.name, args, ms: Date.now() - started,
+        id: call.id,
+        name: call.function.name,
+        args,
+        ms: Date.now() - started,
         ok: outcome.ok,
-        ...(outcome.ok ? { data: outcome.data, refs: outcome.refs ?? [], formula: outcome.formula } : { error: outcome.error, refs: [] }),
+        ...(outcome.ok
+          ? { data: outcome.data, refs: outcome.refs ?? [], formula: outcome.formula }
+          : { error: outcome.error, refs: [] }),
       } as ToolRun;
       toolRuns.push(run);
       deps.onToolEnd?.(run);
@@ -112,7 +136,14 @@ export async function runAgent(history: ChatMessage[], deps: AgentDeps): Promise
 
     // Every declared call must be answered or the next request is a 400.
     for (const call of overflow) {
-      messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ ok: false, error: `Only ${MAX_TOOL_CALLS_PER_TURN} tool calls run per step.` }) });
+      messages.push({
+        role: 'tool',
+        tool_call_id: call.id,
+        content: JSON.stringify({
+          ok: false,
+          error: `Only ${MAX_TOOL_CALLS_PER_TURN} tool calls run per step.`,
+        }),
+      });
     }
   }
 

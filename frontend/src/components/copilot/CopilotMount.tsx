@@ -15,8 +15,12 @@ export const CopilotMount = () => {
     <>
       {/* Announcers live OUTSIDE the panel: aria-hidden + inert would silence a live region inside
           it, so a stream finishing while closed could never be announced. */}
-      <p className="sr-only" role="status" data-testid="copilot-announcer">{announcement}</p>
-      <p className="sr-only" role="alert" data-testid="copilot-alert">{error}</p>
+      <p className="sr-only" role="status" data-testid="copilot-announcer">
+        {announcement}
+      </p>
+      <p className="sr-only" role="alert" data-testid="copilot-alert">
+        {error}
+      </p>
 
       <button
         ref={launcher}
@@ -27,7 +31,14 @@ export const CopilotMount = () => {
         aria-label={copilotOpen ? 'Close the Copilot' : 'Open the Copilot'}
         onClick={() => setCopilotOpen(!copilotOpen)}
       >
-        {copilotOpen ? <X size={18} /> : <><Sparkles size={17} /><span className="copilot-launcher-text">Copilot</span></>}
+        {copilotOpen ? (
+          <X size={18} />
+        ) : (
+          <>
+            <Sparkles size={17} />
+            <span className="copilot-launcher-text">Copilot</span>
+          </>
+        )}
       </button>
 
       <Suspense fallback={null}>

@@ -1,26 +1,119 @@
 /* Editorial hierarchy without sacrificing contrast on small labels. */
-.nav-group-label,.sidebar-foot,.workspace-label small,.sidebar-bottom p,.sidebar-bottom .demo-label,.breadcrumb,.app-footer,
-.stat-label,.stat-note,.command-suggestions>span,.command-suggestions button,.command-rule,.count-label,
-.ranking-heading p,.rank-number,.rank-factory>span,.rank-amount small,.ranking-foot,.map-bottom-band p,
-.selected-stat span,.page-description,.section-heading p,.section-footnote,.tiny-label,.results-label>span,
-.factory-card-metrics>div>span,.factory-card-metrics small,.location,.form-grid label small,.upload-zone>p,
-.upload-zone>small,.sample-divider,.sample-card>span,.sample-card strong,.estimate-metric>span,.estimate-metric small,
-.estimate-formula>span,.estimate-formula p,.summary-baseline p,.extraction-source>div>span,
-.context-metric>span,.intervention-card>p,.intervention-impact>span,.intervention-impact small,
-.intervention-finance>div>span,.intervention-card-foot,.range-labels,.reduction-hero small,.comparison-bars>div>span,
-.cashflow-footer>span,.chart-data,.record-band p,.conditional-value>span,.conditional-value>p,
-.credit-formula p strong,.readiness-meter p,.verification-step p,.data-table th,.data-table td>span,
-.data-table td>small,.data-table td>a+span+small,.data-table td>strong>small,.inbox-item p,.inbox-date,
-.preference-row p,.delivery-note p,.digest-heading p,.process-index,.map-country-label .mono {
-  color:#627188;
+.nav-group-label,
+.sidebar-foot,
+.workspace-label small,
+.sidebar-bottom p,
+.sidebar-bottom .demo-label,
+.breadcrumb,
+.app-footer,
+.stat-label,
+.stat-note,
+.command-suggestions > span,
+.command-suggestions button,
+.command-rule,
+.count-label,
+.ranking-heading p,
+.rank-number,
+.rank-factory > span,
+.rank-amount small,
+.ranking-foot,
+.map-bottom-band p,
+.selected-stat span,
+.page-description,
+.section-heading p,
+.section-footnote,
+.tiny-label,
+.results-label > span,
+.factory-card-metrics > div > span,
+.factory-card-metrics small,
+.location,
+.form-grid label small,
+.upload-zone > p,
+.upload-zone > small,
+.sample-divider,
+.sample-card > span,
+.sample-card strong,
+.estimate-metric > span,
+.estimate-metric small,
+.estimate-formula > span,
+.estimate-formula p,
+.summary-baseline p,
+.extraction-source > div > span,
+.context-metric > span,
+.intervention-card > p,
+.intervention-impact > span,
+.intervention-impact small,
+.intervention-finance > div > span,
+.intervention-card-foot,
+.range-labels,
+.reduction-hero small,
+.comparison-bars > div > span,
+.cashflow-footer > span,
+.chart-data,
+.record-band p,
+.conditional-value > span,
+.conditional-value > p,
+.credit-formula p strong,
+.readiness-meter p,
+.verification-step p,
+.data-table th,
+.data-table td > span,
+.data-table td > small,
+.data-table td > a + span + small,
+.data-table td > strong > small,
+.inbox-item p,
+.inbox-date,
+.preference-row p,
+.delivery-note p,
+.digest-heading p,
+.process-index,
+.map-country-label .mono {
+  color: #627188;
 }
-.command-bar input::placeholder,.search-field input::placeholder{color:#65758b}
-.command-suggestions button span{color:#61718a}
-.verification-top>span{color:#647691}
-.tag.blue,.tag.steel{color:#2451ad}.tag.success,.tag.cement{color:#226851}.tag.warning,.tag.textiles{color:#805c17}
-.map-footnote{color:#465a70}.map-legend{color:#485b72}
-.form-bottom>.muted{color:#5a6c83}
-.preference-row button[data-state=unchecked]{background:#9aa8bb}
-.success-icon{width:60px}
-.stepper>div{color:#64758f}.stepper>div.current{color:#2458e5}
-.leaflet-tile-pane{filter:grayscale(.85) saturate(.4);opacity:.74}
+.command-bar input::placeholder,
+.search-field input::placeholder {
+  color: #65758b;
+}
+.command-suggestions button span {
+  color: #61718a;
+}
+.verification-top > span {
+  color: #647691;
+}
+.tag.blue,
+.tag.steel {
+  color: #2451ad;
+}
+.tag.success,
+.tag.cement {
+  color: #226851;
+}
+.tag.warning,
+.tag.textiles {
+  color: #805c17;
+}
+.map-footnote {
+  color: #465a70;
+}
+.map-legend {
+  color: #485b72;
+}
+.form-bottom > .muted {
+  color: #5a6c83;
+}
+.preference-row button[data-state='unchecked'] {
+  background: #9aa8bb;
+}
+.success-icon {
+  width: 60px;
+}
+.stepper > div {
+  color: #64758f;
+}
+.stepper > div.current {
+  color: #2458e5;
+}
+.leaflet-tile-pane {
+  filter: grayscale(0.85) saturate(0.4);
+  opacity: 0.74;
+}

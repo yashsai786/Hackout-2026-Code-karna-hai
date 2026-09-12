@@ -1,32 +1,60 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { validateKey, fetchModels, streamChat, supportsTools, type KeyInfo, type Model, type StreamChatOptions, type StreamResult } from '../lib/openrouter';
+import {
+  validateKey,
+  fetchModels,
+  streamChat,
+  supportsTools,
+  type KeyInfo,
+  type Model,
+  type StreamChatOptions,
+  type StreamResult,
+} from '../lib/openrouter';
 
 export type ToolSupport = 'yes' | 'no' | 'unknown';
 type ChatArgs = Omit<StreamChatOptions, 'apiKey' | 'model'> & { model?: string };
 
 type SettingsState = {
-  connected: boolean; keyInfo: KeyInfo | null;
-  models: Model[]; modelsLoading: boolean; modelsError: string;
-  defaultModel: string; setDefaultModel: (id: string) => void;
-  connect: (key: string) => Promise<void>; disconnect: () => void; loadModels: () => Promise<void>;
+  connected: boolean;
+  keyInfo: KeyInfo | null;
+  models: Model[];
+  modelsLoading: boolean;
+  modelsError: string;
+  defaultModel: string;
+  setDefaultModel: (id: string) => void;
+  connect: (key: string) => Promise<void>;
+  disconnect: () => void;
+  loadModels: () => Promise<void>;
   ensureModels: () => Promise<void>;
-  toolSupport: ToolSupport; toolModelCount: number;
+  toolSupport: ToolSupport;
+  toolModelCount: number;
   runChat: (args: ChatArgs) => Promise<StreamResult>;
 };
 const Ctx = createContext<SettingsState | null>(null);
 
 // Verified present in the live catalogue and tool-capable. Best effort: if none match, the picker
 // falls through to the cheapest capable model.
-const PREFERRED_MODELS = ['google/gemini-2.5-flash', 'openai/gpt-4.1-mini', 'anthropic/claude-haiku-4.5', 'openai/gpt-4o-mini', 'anthropic/claude-sonnet-4.5'];
+const PREFERRED_MODELS = [
+  'google/gemini-2.5-flash',
+  'openai/gpt-4.1-mini',
+  'anthropic/claude-haiku-4.5',
+  'openai/gpt-4o-mini',
+  'anthropic/claude-sonnet-4.5',
+];
 
-const promptPrice = (m: Model) => { const n = Number(m.pricing?.prompt ?? '1'); return Number.isFinite(n) && n >= 0 ? n : Number.POSITIVE_INFINITY; };
+const promptPrice = (m: Model) => {
+  const n = Number(m.pricing?.prompt ?? '1');
+  return Number.isFinite(n) && n >= 0 ? n : Number.POSITIVE_INFINITY;
+};
 
 export function pickDefaultModel(models: Model[], keyInfo: KeyInfo | null): string {
   const capable = models.filter(supportsTools);
   if (!capable.length) return '';
   const free = capable.filter(m => m.id.endsWith(':free') || m.pricing?.prompt === '0');
   const pool = keyInfo?.is_free_tier && free.length ? free : capable;
-  for (const id of PREFERRED_MODELS) { const hit = pool.find(m => m.id === id); if (hit) return hit.id; }
+  for (const id of PREFERRED_MODELS) {
+    const hit = pool.find(m => m.id === id);
+    if (hit) return hit.id;
+  }
   return [...pool].sort((a, b) => promptPrice(a) - promptPrice(b))[0]?.id ?? capable[0].id;
 }
 
@@ -42,30 +70,43 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const defaultModelRef = useRef('');
   const requested = useRef(false);
 
-  const setDefaultModel = useCallback((id: string) => { defaultModelRef.current = id; setDefaultModelState(id); }, []);
+  const setDefaultModel = useCallback((id: string) => {
+    defaultModelRef.current = id;
+    setDefaultModelState(id);
+  }, []);
 
   // Plain async with a ref guard. The previous shape ran its fetch inside a setModels updater,
   // which React StrictMode may invoke twice.
   const loadModels = useCallback(async () => {
     if (requested.current) return;
     requested.current = true;
-    setModelsLoading(true); setModelsError('');
-    try { setModels(await fetchModels()); }
-    catch (e) {
+    setModelsLoading(true);
+    setModelsError('');
+    try {
+      setModels(await fetchModels());
+    } catch (e) {
       requested.current = false; // so the Retry button can try again
       setModelsError(e instanceof Error ? e.message : 'Could not load models.');
+    } finally {
+      setModelsLoading(false);
     }
-    finally { setModelsLoading(false); }
   }, []);
 
-  const connect = useCallback(async (key: string) => {
-    const info = await validateKey(key);
-    keyRef.current = key.trim();
-    setKeyInfo(info);
-    loadModels();
-  }, [loadModels]);
+  const connect = useCallback(
+    async (key: string) => {
+      const info = await validateKey(key);
+      keyRef.current = key.trim();
+      setKeyInfo(info);
+      loadModels();
+    },
+    [loadModels],
+  );
 
-  const disconnect = useCallback(() => { keyRef.current = ''; setKeyInfo(null); setDefaultModel(''); }, [setDefaultModel]);
+  const disconnect = useCallback(() => {
+    keyRef.current = '';
+    setKeyInfo(null);
+    setDefaultModel('');
+  }, [setDefaultModel]);
 
   const runChat = useCallback(async (o: ChatArgs) => {
     const apiKey = keyRef.current;
@@ -88,14 +129,38 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const selected = models.find(m => m.id === defaultModel);
   // Tri-state: before the catalogue loads, capability is genuinely unknown, and claiming "cannot
   // call tools" would be a false statement in a product built on not making those.
-  const toolSupport: ToolSupport = !models.length ? 'unknown' : !defaultModel ? 'unknown' : selected ? (supportsTools(selected) ? 'yes' : 'no') : 'unknown';
+  const toolSupport: ToolSupport = !models.length
+    ? 'unknown'
+    : !defaultModel
+      ? 'unknown'
+      : selected
+        ? supportsTools(selected)
+          ? 'yes'
+          : 'no'
+        : 'unknown';
   const toolModelCount = models.filter(supportsTools).length;
 
   const value: SettingsState = {
-    connected, keyInfo, models, modelsLoading, modelsError, defaultModel, setDefaultModel,
-    connect, disconnect, loadModels, ensureModels: loadModels, toolSupport, toolModelCount, runChat,
+    connected,
+    keyInfo,
+    models,
+    modelsLoading,
+    modelsError,
+    defaultModel,
+    setDefaultModel,
+    connect,
+    disconnect,
+    loadModels,
+    ensureModels: loadModels,
+    toolSupport,
+    toolModelCount,
+    runChat,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
 
-export const useSettings = () => { const c = useContext(Ctx); if (!c) throw new Error('SettingsProvider missing'); return c; };
+export const useSettings = () => {
+  const c = useContext(Ctx);
+  if (!c) throw new Error('SettingsProvider missing');
+  return c;
+};

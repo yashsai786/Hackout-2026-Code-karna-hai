@@ -14,14 +14,29 @@ export type HotspotPrediction = {
 };
 
 export type HotspotRequest = {
-  sector: string; route: string; primary_fuel: string; region: string;
-  production_t: number; energy_spend_inr: number; plant_age_years: number; headcount: number;
+  sector: string;
+  route: string;
+  primary_fuel: string;
+  region: string;
+  production_t: number;
+  energy_spend_inr: number;
+  plant_age_years: number;
+  headcount: number;
 };
 
 export type ModelCard = {
-  loaded: boolean; name?: string; predicts?: string; algorithm?: string; training?: string;
-  n_samples?: number; model_share_mae?: number; sector_table_share_mae?: number; improvement_pct?: number;
-  routes?: Record<string, string[]>; regions?: string[]; hint?: string;
+  loaded: boolean;
+  name?: string;
+  predicts?: string;
+  algorithm?: string;
+  training?: string;
+  n_samples?: number;
+  model_share_mae?: number;
+  sector_table_share_mae?: number;
+  improvement_pct?: number;
+  routes?: Record<string, string[]>;
+  regions?: string[];
+  hint?: string;
 };
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
@@ -33,11 +48,12 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     signal: AbortSignal.timeout(12000),
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({} as any));
+    const body = await res.json().catch(() => ({}) as any);
     throw new Error(body?.detail || `The estimator returned ${res.status}.`);
   }
   return res.json() as Promise<T>;
 }
 
 export const fetchModelCard = () => call<ModelCard>('/api/v1/model');
-export const predictHotspots = (body: HotspotRequest) => call<HotspotPrediction>('/api/v1/hotspots', { method: 'POST', body: JSON.stringify(body) });
+export const predictHotspots = (body: HotspotRequest) =>
+  call<HotspotPrediction>('/api/v1/hotspots', { method: 'POST', body: JSON.stringify(body) });

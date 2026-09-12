@@ -26,7 +26,10 @@ export const Evidence = ({ runs }: { runs: ToolRun[] }) => {
             {!!Object.keys(run.args).length && (
               <dl className="copilot-args">
                 {Object.entries(run.args).map(([k, v]) => (
-                  <div key={k}><dt>{k}</dt><dd>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</dd></div>
+                  <div key={k}>
+                    <dt>{k}</dt>
+                    <dd>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</dd>
+                  </div>
                 ))}
               </dl>
             )}
@@ -35,8 +38,14 @@ export const Evidence = ({ runs }: { runs: ToolRun[] }) => {
             {!!run.refs.length && (
               <div className="copilot-trace-refs">
                 {run.refs.map(r => (
-                  <Link key={`${r.kind}-${r.id}`} to={r.to} className="text-link" data-testid={`copilot-ref-${r.id}`}>
-                    {r.label}<ArrowUpRight size={13} aria-hidden="true" />
+                  <Link
+                    key={`${r.kind}-${r.id}`}
+                    to={r.to}
+                    className="text-link"
+                    data-testid={`copilot-ref-${r.id}`}
+                  >
+                    {r.label}
+                    <ArrowUpRight size={13} aria-hidden="true" />
                   </Link>
                 ))}
               </div>

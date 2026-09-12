@@ -1,12 +1,27 @@
 export const ORIGIN = 'https://openrouter.ai/api/v1';
 
-export type KeyInfo = { label?: string; limit: number | null; limit_remaining: number | null; usage: number; is_free_tier?: boolean };
-export type Model = { id: string; name: string; context_length?: number; pricing?: { prompt?: string; completion?: string }; supported_parameters?: string[] };
+export type KeyInfo = {
+  label?: string;
+  limit: number | null;
+  limit_remaining: number | null;
+  usage: number;
+  is_free_tier?: boolean;
+};
+export type Model = {
+  id: string;
+  name: string;
+  context_length?: number;
+  pricing?: { prompt?: string; completion?: string };
+  supported_parameters?: string[];
+};
 
 export const supportsTools = (m?: Model) => !!m?.supported_parameters?.includes('tools');
 
 // Chat wire types. `arguments` is a JSON *string* on the wire, not an object.
-export type ToolDef = { type: 'function'; function: { name: string; description: string; parameters: Record<string, unknown> } };
+export type ToolDef = {
+  type: 'function';
+  function: { name: string; description: string; parameters: Record<string, unknown> };
+};
 export type ToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } };
 export type ChatMessage =
   | { role: 'system'; content: string }
@@ -17,9 +32,15 @@ export type Usage = { prompt_tokens?: number; completion_tokens?: number; total_
 export type StreamEvent = { type: 'text'; delta: string } | { type: 'done'; finish: string; usage?: Usage };
 export type StreamResult = { text: string; toolCalls: ToolCall[]; finish: string; usage?: Usage };
 export type StreamChatOptions = {
-  apiKey: string; model: string; messages: ChatMessage[];
-  tools?: ToolDef[]; toolChoice?: 'auto' | 'none'; temperature?: number; maxTokens?: number;
-  signal?: AbortSignal; onEvent?: (e: StreamEvent) => void;
+  apiKey: string;
+  model: string;
+  messages: ChatMessage[];
+  tools?: ToolDef[];
+  toolChoice?: 'auto' | 'none';
+  temperature?: number;
+  maxTokens?: number;
+  signal?: AbortSignal;
+  onEvent?: (e: StreamEvent) => void;
 };
 
 export const isAbort = (e: unknown) => (e as Error | null)?.name === 'AbortError';
@@ -45,7 +66,11 @@ function streamHeaders(apiKey: string): HeadersInit {
 
 async function jsonOrThrow(res: Response) {
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body?.error?.message || (res.status === 401 ? 'Invalid or revoked API key.' : `OpenRouter error ${res.status}.`));
+  if (!res.ok)
+    throw new Error(
+      body?.error?.message ||
+        (res.status === 401 ? 'Invalid or revoked API key.' : `OpenRouter error ${res.status}.`),
+    );
   return body;
 }
 
@@ -54,7 +79,11 @@ async function jsonOrThrow(res: Response) {
 async function errorFromResponse(res: Response): Promise<string> {
   const raw = await res.text().catch(() => '');
   let message = '';
-  try { message = JSON.parse(raw)?.error?.message ?? ''; } catch { /* non-JSON body */ }
+  try {
+    message = JSON.parse(raw)?.error?.message ?? '';
+  } catch {
+    /* non-JSON body */
+  }
   if (message) return message;
   if (res.status === 401) return 'Invalid or revoked API key.';
   if (res.status === 402) return 'This key has no remaining credit for that model.';
@@ -72,11 +101,21 @@ export async function validateKey(apiKey: string): Promise<KeyInfo> {
 }
 
 export async function fetchModels(): Promise<Model[]> {
-  const res = await fetch(`${ORIGIN}/models?limit=1000`, { method: 'GET', headers: headers(), credentials: 'omit' });
+  const res = await fetch(`${ORIGIN}/models?limit=1000`, {
+    method: 'GET',
+    headers: headers(),
+    credentials: 'omit',
+  });
   const body = await jsonOrThrow(res);
   const list = (body.data ?? []) as Model[];
   return list
-    .map(m => ({ id: m.id, name: m.name, context_length: m.context_length, pricing: m.pricing, supported_parameters: m.supported_parameters }))
+    .map(m => ({
+      id: m.id,
+      name: m.name,
+      context_length: m.context_length,
+      pricing: m.pricing,
+      supported_parameters: m.supported_parameters,
+    }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -85,7 +124,10 @@ export async function fetchModels(): Promise<Model[]> {
  * Splitting the whole buffer and processing every piece would corrupt a frame that straddles a
  * chunk boundary, which is the common failure in hand-rolled SSE readers.
  */
-export function parseSseChunk(buffer: string, onFrame: (frame: any) => void): { rest: string; done: boolean } {
+export function parseSseChunk(
+  buffer: string,
+  onFrame: (frame: any) => void,
+): { rest: string; done: boolean } {
   let cut = buffer.indexOf('\n');
   while (cut !== -1) {
     const line = buffer.slice(0, cut).replace(/\r$/, '');
@@ -93,7 +135,13 @@ export function parseSseChunk(buffer: string, onFrame: (frame: any) => void): { 
     const payload = !line || line.startsWith(':') || !line.startsWith('data:') ? null : line.slice(5).trim();
     if (payload === '[DONE]') return { rest: '', done: true };
     // One malformed frame must never end the turn.
-    if (payload) { try { onFrame(JSON.parse(payload)); } catch { /* ignore */ } }
+    if (payload) {
+      try {
+        onFrame(JSON.parse(payload));
+      } catch {
+        /* ignore */
+      }
+    }
     cut = buffer.indexOf('\n');
   }
   return { rest: buffer, done: false };
@@ -115,12 +163,18 @@ function collectToolCalls(partials: Map<number, PartialCall>, delta: any) {
 }
 
 function finaliseToolCalls(partials: Map<number, PartialCall>): ToolCall[] {
-  return [...partials.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .filter(([, slot]) => slot.name)
-    // A missing id makes the follow-up tool_call_id invalid and the next request a 400, so
-    // synthesise one deterministically and echo the same value in the assistant message.
-    .map(([index, slot]) => ({ id: slot.id || `call_${index}`, type: 'function' as const, function: { name: slot.name, arguments: slot.args || '{}' } }));
+  return (
+    [...partials.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .filter(([, slot]) => slot.name)
+      // A missing id makes the follow-up tool_call_id invalid and the next request a 400, so
+      // synthesise one deterministically and echo the same value in the assistant message.
+      .map(([index, slot]) => ({
+        id: slot.id || `call_${index}`,
+        type: 'function' as const,
+        function: { name: slot.name, arguments: slot.args || '{}' },
+      }))
+  );
 }
 
 export async function streamChat(o: StreamChatOptions): Promise<StreamResult> {
@@ -144,7 +198,9 @@ export async function streamChat(o: StreamChatOptions): Promise<StreamResult> {
   if (!res.body) throw new Error('This browser cannot read a streaming response.');
 
   const partials = new Map<number, PartialCall>();
-  let text = '', finish = '', usage: Usage | undefined;
+  let text = '',
+    finish = '',
+    usage: Usage | undefined;
 
   // Some providers ignore `stream: true` and return a single completion.
   if (!(res.headers.get('content-type') ?? '').includes('text/event-stream')) {
@@ -161,7 +217,9 @@ export async function streamChat(o: StreamChatOptions): Promise<StreamResult> {
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  const cancel = () => { reader.cancel().catch(() => {}); };
+  const cancel = () => {
+    reader.cancel().catch(() => {});
+  };
   o.signal?.addEventListener('abort', cancel);
   let buffer = '';
   try {
@@ -174,7 +232,10 @@ export async function streamChat(o: StreamChatOptions): Promise<StreamResult> {
         if (frame?.usage) usage = frame.usage;
         if (choice?.finish_reason) finish = choice.finish_reason;
         const delta = choice?.delta;
-        if (delta?.content) { text += delta.content; o.onEvent?.({ type: 'text', delta: delta.content }); }
+        if (delta?.content) {
+          text += delta.content;
+          o.onEvent?.({ type: 'text', delta: delta.content });
+        }
         collectToolCalls(partials, delta);
       });
       buffer = step.rest;
@@ -182,7 +243,11 @@ export async function streamChat(o: StreamChatOptions): Promise<StreamResult> {
     }
   } finally {
     o.signal?.removeEventListener('abort', cancel);
-    try { reader.releaseLock(); } catch { /* already released by cancel */ }
+    try {
+      reader.releaseLock();
+    } catch {
+      /* already released by cancel */
+    }
   }
 
   const toolCalls = finaliseToolCalls(partials);

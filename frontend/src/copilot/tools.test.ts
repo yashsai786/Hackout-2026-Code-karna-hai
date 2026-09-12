@@ -9,11 +9,16 @@ import { buildSystemPrompt } from './prompt';
 import { parseSseChunk } from '../lib/openrouter';
 
 function makeCtx(overrides: Partial<ToolContext> = {}) {
-  const calls: { navigate: string[]; selected: string[]; recorded: any[] } = { navigate: [], selected: [], recorded: [] };
+  const calls: { navigate: string[]; selected: string[]; recorded: any[] } = {
+    navigate: [],
+    selected: [],
+    recorded: [],
+  };
   const ledger: LedgerEntry[] = [];
   const ctx: ToolContext = {
     factories: structuredClone(fixtureFactories) as Factory[],
-    ledger, intake: [],
+    ledger,
+    intake: [],
     actions: {
       navigate: p => calls.navigate.push(p),
       selectFactory: id => calls.selected.push(id),
@@ -25,8 +30,16 @@ function makeCtx(overrides: Partial<ToolContext> = {}) {
         return { added: true, id: entry.id };
       },
     },
-    proposeAction: a => { const token = `tok-${calls.recorded.length}-${a.factoryId}`; pending.set(token, { ...a, token, createdAt: 0 }); return { token }; },
-    consumePending: token => { const e = pending.get(token) ?? null; pending.delete(token); return e; },
+    proposeAction: a => {
+      const token = `tok-${calls.recorded.length}-${a.factoryId}`;
+      pending.set(token, { ...a, token, createdAt: 0 });
+      return { token };
+    },
+    consumePending: token => {
+      const e = pending.get(token) ?? null;
+      pending.delete(token);
+      return e;
+    },
     ...overrides,
   };
   const pending = new Map<string, any>();
@@ -53,7 +66,8 @@ describe('tool registry hygiene', () => {
     const ids = interventions.map(i => i.id);
     const walk = (node: any): void => {
       if (!node || typeof node !== 'object') return;
-      if (Array.isArray(node.enum) && node.enum.includes('waste-heat')) expect([...node.enum].sort()).toEqual([...ids].sort());
+      if (Array.isArray(node.enum) && node.enum.includes('waste-heat'))
+        expect([...node.enum].sort()).toEqual([...ids].sort());
       Object.values(node).forEach(walk);
     };
     tools.forEach(t => walk(t.def.function.parameters));
@@ -62,7 +76,14 @@ describe('tool registry hygiene', () => {
 
 describe('runTool never throws', () => {
   const { ctx } = makeCtx();
-  const junk = ['', '{', 'null', '[]', '{"factory_id":null}', '{"factory_id":"nope","intervention_ids":["x"],"adoption":"abc"}'];
+  const junk = [
+    '',
+    '{',
+    'null',
+    '[]',
+    '{"factory_id":null}',
+    '{"factory_id":"nope","intervention_ids":["x"],"adoption":"abc"}',
+  ];
   it('survives unknown tools and malformed arguments', () => {
     junk.forEach(raw => {
       expect(() => runTool('run_scenario', raw, ctx)).not.toThrow();
@@ -86,7 +107,10 @@ describe('tools agree with the screens', () => {
     expect(res.data.illustrative_volume_units_yr).toBe(expected.volume);
     expect(res.data.illustrative_volume_units_yr).toBe(Math.floor(expected.best!.result.reduction * 0.7));
     expect(res.data.modelling_factor).toBe(0.7);
-    expect(res.data.gross_value_band_inr_yr).toEqual([expected.volume * reference.creditLowINR, expected.volume * reference.creditHighINR]);
+    expect(res.data.gross_value_band_inr_yr).toEqual([
+      expected.volume * reference.creditLowINR,
+      expected.volume * reference.creditHighINR,
+    ]);
     expect(res.data.registry_verified).toBe(false);
     expect(res.data.realised_credit_revenue_inr).toBe(0);
   });
@@ -102,18 +126,30 @@ describe('tools agree with the screens', () => {
     const total: any = runTool('rank_factories', JSON.stringify({ metric: 'total', limit: 3 }), ctx);
     expect(total.data.ranked[0].id).toBe('bhilai-steel');
     expect(total.data.unit).toBe('tCO2e/yr');
-    const byIntensity: any = runTool('rank_factories', JSON.stringify({ metric: 'intensity', limit: 1 }), ctx);
+    const byIntensity: any = runTool(
+      'rank_factories',
+      JSON.stringify({ metric: 'intensity', limit: 1 }),
+      ctx,
+    );
     expect(byIntensity.data.ranked[0].id).toBe('surat-textiles');
   });
 
   it('run_scenario equals scenario() and keeps capex fixed at zero adoption', () => {
-    const res: any = runTool('run_scenario', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 75 }), ctx);
+    const res: any = runTool(
+      'run_scenario',
+      JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 75 }),
+      ctx,
+    );
     const direct = scenario(bhilai, [interventions.find(i => i.id === 'waste-heat')!], 75);
     expect(res.data.reduction_tco2e_yr).toBeCloseTo(direct.reduction, 2);
     expect(res.data.capex_inr_one_off).toBe(direct.capex);
     expect(res.formula).toContain('reduction = min(baseline');
 
-    const zero: any = runTool('run_scenario', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 0 }), ctx);
+    const zero: any = runTool(
+      'run_scenario',
+      JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 0 }),
+      ctx,
+    );
     expect(zero.data.capex_inr_one_off).toBe(direct.capex);
     expect(zero.data.payback_months).toBeNull();
   });
@@ -125,19 +161,39 @@ describe('domain errors reach the model recoverably', () => {
     // Null a factory that no other assertion in this block touches.
     const awaiting = ctx.factories.find(f => f.id === 'ludhiana-textiles')!;
     (awaiting as any).baseline = null;
-    const noBaseline: any = runTool('run_scenario', JSON.stringify({ factory_id: awaiting.id, intervention_ids: ['solar'], adoption: 50 }), ctx);
+    const noBaseline: any = runTool(
+      'run_scenario',
+      JSON.stringify({ factory_id: awaiting.id, intervention_ids: ['solar'], adoption: 50 }),
+      ctx,
+    );
     expect(noBaseline).toMatchObject({ ok: false, error: 'A validated baseline is required.' });
     expect(noBaseline.hint).toBeTruthy();
 
-    const badAdoption: any = runTool('run_scenario', JSON.stringify({ factory_id: 'satna-cement', intervention_ids: ['clinker'], adoption: 140 }), ctx);
+    const badAdoption: any = runTool(
+      'run_scenario',
+      JSON.stringify({ factory_id: 'satna-cement', intervention_ids: ['clinker'], adoption: 140 }),
+      ctx,
+    );
     expect(badAdoption).toMatchObject({ ok: false, error: 'Adoption must be between 0 and 100.' });
     expect(badAdoption.hint).toBeTruthy();
 
-    const wrongSector: any = runTool('run_scenario', JSON.stringify({ factory_id: 'tiruppur-textiles', intervention_ids: ['waste-heat'], adoption: 50 }), ctx);
+    const wrongSector: any = runTool(
+      'run_scenario',
+      JSON.stringify({ factory_id: 'tiruppur-textiles', intervention_ids: ['waste-heat'], adoption: 50 }),
+      ctx,
+    );
     expect(wrongSector).toMatchObject({ ok: false, error: 'This combination is not compatible.' });
     expect(wrongSector.hint).toBeTruthy();
 
-    const sameSource: any = runTool('run_scenario', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['solar', 'motor-efficiency'], adoption: 100 }), ctx);
+    const sameSource: any = runTool(
+      'run_scenario',
+      JSON.stringify({
+        factory_id: 'bhilai-steel',
+        intervention_ids: ['solar', 'motor-efficiency'],
+        adoption: 100,
+      }),
+      ctx,
+    );
     expect(sameSource).toMatchObject({ ok: false, error: 'This combination is not compatible.' });
   });
 });
@@ -145,33 +201,72 @@ describe('domain errors reach the model recoverably', () => {
 describe('record_estimate confirmation gate', () => {
   it('parks a proposal without writing, then records once on the token', () => {
     const { ctx, calls } = makeCtx();
-    const proposal: any = runTool('record_estimate', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 60 }), ctx);
+    const proposal: any = runTool(
+      'record_estimate',
+      JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 60 }),
+      ctx,
+    );
     expect(proposal.ok).toBe(true);
     expect(proposal.data.status).toBe('awaiting_confirmation');
-    expect(calls.recorded).toHaveLength(0);           // nothing written yet
+    expect(calls.recorded).toHaveLength(0); // nothing written yet
 
     const token = proposal.data.confirmation_token;
-    const done: any = runTool('record_estimate', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 60, confirmation_token: token }), ctx);
+    const done: any = runTool(
+      'record_estimate',
+      JSON.stringify({
+        factory_id: 'bhilai-steel',
+        intervention_ids: ['waste-heat'],
+        adoption: 60,
+        confirmation_token: token,
+      }),
+      ctx,
+    );
     expect(done.ok).toBe(true);
     expect(done.data.recorded).toBe(true);
     expect(calls.recorded).toHaveLength(1);
 
-    const replay: any = runTool('record_estimate', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 60, confirmation_token: token }), ctx);
-    expect(replay.ok).toBe(false);                    // single use
+    const replay: any = runTool(
+      'record_estimate',
+      JSON.stringify({
+        factory_id: 'bhilai-steel',
+        intervention_ids: ['waste-heat'],
+        adoption: 60,
+        confirmation_token: token,
+      }),
+      ctx,
+    );
+    expect(replay.ok).toBe(false); // single use
     expect(calls.recorded).toHaveLength(1);
   });
 
   it('rejects a token whose proposal does not match the arguments', () => {
     const { ctx, calls } = makeCtx();
-    const proposal: any = runTool('record_estimate', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 60 }), ctx);
-    const tampered: any = runTool('record_estimate', JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 90, confirmation_token: proposal.data.confirmation_token }), ctx);
+    const proposal: any = runTool(
+      'record_estimate',
+      JSON.stringify({ factory_id: 'bhilai-steel', intervention_ids: ['waste-heat'], adoption: 60 }),
+      ctx,
+    );
+    const tampered: any = runTool(
+      'record_estimate',
+      JSON.stringify({
+        factory_id: 'bhilai-steel',
+        intervention_ids: ['waste-heat'],
+        adoption: 90,
+        confirmation_token: proposal.data.confirmation_token,
+      }),
+      ctx,
+    );
     expect(tampered.ok).toBe(false);
     expect(calls.recorded).toHaveLength(0);
   });
 
   it('parks nothing when the previewed scenario is invalid', () => {
     const { ctx } = makeCtx();
-    const res: any = runTool('record_estimate', JSON.stringify({ factory_id: 'tiruppur-textiles', intervention_ids: ['waste-heat'], adoption: 50 }), ctx);
+    const res: any = runTool(
+      'record_estimate',
+      JSON.stringify({ factory_id: 'tiruppur-textiles', intervention_ids: ['waste-heat'], adoption: 50 }),
+      ctx,
+    );
     expect(res).toMatchObject({ ok: false, error: 'This combination is not compatible.' });
   });
 });
@@ -193,7 +288,11 @@ describe('conversation hygiene', () => {
     const history: any[] = [
       { role: 'system', content: 's' },
       { role: 'user', content: 'q' },
-      { role: 'assistant', content: '', tool_calls: [{ id: 'a', type: 'function', function: { name: 'x', arguments: '{}' } }] },
+      {
+        role: 'assistant',
+        content: '',
+        tool_calls: [{ id: 'a', type: 'function', function: { name: 'x', arguments: '{}' } }],
+      },
     ];
     expect(sanitiseHistory(history)).toHaveLength(2);
   });
@@ -217,7 +316,12 @@ describe('conversation hygiene', () => {
 
 describe('system prompt', () => {
   it('carries the invariants, the fixture date and every session factory id', () => {
-    const p = buildSystemPrompt({ factories: fixtureFactories as Factory[], ledger: [], intake: [], toolsEnabled: true });
+    const p = buildSystemPrompt({
+      factories: fixtureFactories as Factory[],
+      ledger: [],
+      intake: [],
+      toolsEnabled: true,
+    });
     expect(p).toContain('01 Feb 2026');
     expect(p).toContain('Capex is fixed at every adoption level');
     expect(p).toContain('8,42,000');
@@ -226,7 +330,12 @@ describe('system prompt', () => {
   });
 
   it('forbids figures entirely when tools are unavailable', () => {
-    const p = buildSystemPrompt({ factories: fixtureFactories as Factory[], ledger: [], intake: [], toolsEnabled: false });
+    const p = buildSystemPrompt({
+      factories: fixtureFactories as Factory[],
+      ledger: [],
+      intake: [],
+      toolsEnabled: false,
+    });
     expect(p).toContain('YOU HAVE NO TOOLS IN THIS SESSION');
   });
 });
@@ -234,12 +343,16 @@ describe('system prompt', () => {
 describe('SSE frame parsing', () => {
   const collect = (chunks: string[]) => {
     const frames: any[] = [];
-    let buffer = '', done = false;
+    let buffer = '',
+      done = false;
     for (const c of chunks) {
       buffer += c;
       const step = parseSseChunk(buffer, f => frames.push(f));
       buffer = step.rest;
-      if (step.done) { done = true; break; }
+      if (step.done) {
+        done = true;
+        break;
+      }
     }
     return { frames, done };
   };
