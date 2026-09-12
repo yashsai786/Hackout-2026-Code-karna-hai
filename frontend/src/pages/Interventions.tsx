@@ -159,13 +159,14 @@ export default function Interventions() {
       ) : rows.length ? (
         <>
           <div className="results-label" data-testid="intervention-results">
-            {rows.length} relevant measures{' '}
-            <span>· Rule-based sector matches · Estimates at 100% adoption</span>
+            {rows.length} relevant measures <span>· Ranked by this plant’s hotspots · at full adoption</span>
           </div>
           <div className="intervention-grid">
             {rows.map((i, index) => {
               const Icon = interventionIcons[i.id] ?? fallbackInterventionIcon;
-              const roi = roiPercent(i.estimate.operatingSavings, i.capex);
+              // Capex is plant-scaled (six-tenths rule), exactly as the scenario page prices it — never the
+              // catalogue figure, or the same measure would carry two prices in the same session.
+              const roi = roiPercent(i.estimate.operatingSavings, i.estimate.capex);
               return (
                 <Link
                   to={`/interventions/${i.id}?factory=${f.id}`}
@@ -198,7 +199,7 @@ export default function Interventions() {
                       <span>Return / yr</span>
                       <strong title="Annual operating savings as a percentage of the upfront capital.">
                         {roi === null
-                          ? i.capex <= 0
+                          ? i.estimate.capex <= 0
                             ? 'No capex'
                             : '—'
                           : `${roi >= 1000 ? Math.round(roi / 100) * 100 : Math.round(roi)}%`}
@@ -206,7 +207,7 @@ export default function Interventions() {
                     </div>
                     <div>
                       <span>Upfront capex</span>
-                      <strong>{money(i.capex)}</strong>
+                      <strong>{money(i.estimate.capex)}</strong>
                     </div>
                   </div>
                   <div className="intervention-card-foot">

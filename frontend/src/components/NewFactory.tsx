@@ -24,7 +24,7 @@ export const NewFactory = () => {
       <DialogContent data-testid="new-factory-dialog" className="app-dialog">
         <DialogTitle data-testid="new-factory-title">Add a factory</DialogTitle>
         <DialogDescription data-testid="new-factory-description">
-          A new record in your current demonstration session.
+          A new plant in this session. You will describe its process next.
         </DialogDescription>
         <form
           className="form-stack"

@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Check, BookOpen, TrendingDown, Info } from 'luci
 import { toast } from 'sonner';
 import { useSession } from '../state/SessionContext';
 import { interventions, sourceLabels } from '../domain/fixtures';
-import { scenario, compatible, eligibleFor } from '../domain/calculations';
+import { scenario, compatible, eligibleFor, roiPercent } from '../domain/calculations';
 import {
   PageHeading,
   Notice,
@@ -80,11 +80,6 @@ export default function InterventionDetail() {
         eyebrow={`${item.category.toUpperCase()} / SCENARIO BUILDER`}
         title={item.name}
         description={item.description}
-        action={
-          <Tag id="scenario-simulation-tag" tone="blue">
-            Illustrative estimate
-          </Tag>
-        }
       />
       <div className="factory-context">
         <div>
@@ -202,7 +197,17 @@ export default function InterventionDetail() {
                   <dd data-testid="scenario-net-savings">{money(result.operatingSavings)}</dd>
                 </div>
                 <div>
-                  <dt>Upfront capex · fixed</dt>
+                  <dt>Return on capital / yr</dt>
+                  <dd data-testid="scenario-roi">
+                    {result.roiPercent === null
+                      ? result.capex <= 0
+                        ? 'No capex'
+                        : '—'
+                      : `${Math.round(result.roiPercent)}%`}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Upfront capex</dt>
                   <dd data-testid="scenario-capex">{money(result.capex)}</dd>
                 </div>
                 <div>
@@ -211,15 +216,11 @@ export default function InterventionDetail() {
                 </div>
               </dl>
               <Notice id="capex-assumption">
-                Capex is fixed at every adoption level, including 0%. Gross savings and additional operating
-                costs scale with adoption. Upfront investment is not deducted from annual operating savings.
+                Capex does not scale with adoption; savings and operating costs do.
               </Notice>
             </section>
             <section className="scenario-results">
-              <SectionHeading
-                title="A smaller footprint"
-                note="Annual baseline versus this illustrative scenario"
-              />
+              <SectionHeading title="A smaller footprint" note="Annual baseline versus this scenario" />
               <div className="reduction-hero">
                 <TrendingDown size={27} />
                 <strong data-testid="scenario-reduction">
@@ -296,10 +297,7 @@ export default function InterventionDetail() {
             </p>
           )}
           <section className="full-section">
-            <SectionHeading
-              title="Implementation pathway"
-              note="Illustrative sequence; site-specific engineering is required"
-            />
+            <SectionHeading title="Implementation pathway" note="Site-specific engineering required" />
             <div
               className="process-flow"
               tabIndex={0}

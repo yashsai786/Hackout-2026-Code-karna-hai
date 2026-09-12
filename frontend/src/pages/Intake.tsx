@@ -109,11 +109,6 @@ export default function Intake() {
         eyebrow="BETTER INPUTS. CLEARER DECISIONS."
         title="Data Intake"
         description="Bring a source record into focus, review the assumptions, and capture an estimate."
-        action={
-          <Tag id="intake-simulation-tag" tone="blue">
-            Simulated extraction
-          </Tag>
-        }
       />
       <div className="stepper" aria-label="Intake progress" data-testid="intake-progress">
         {['Choose a source', 'Review extraction', 'Confirm estimate'].map((s, i) => (
@@ -127,9 +122,8 @@ export default function Intake() {
         ))}
       </div>
       <Notice id="intake-disclosure">
-        Demonstration only. File names and sizes are captured; document contents are{' '}
-        <strong>never read or uploaded</strong>. All extraction results come from editable sample fixtures,
-        not OCR or AI.
+        Sample extractions. Files are <strong>never read or uploaded</strong> — only the name and size are
+        kept. Document OCR is on the roadmap; enter measured figures on the factory profile.
       </Notice>
       {!factory && (
         <div className="notice warning" role="alert" data-testid="intake-invalid-factory">
@@ -323,7 +317,7 @@ export default function Intake() {
                   <FileText size={22} />
                   <div>
                     <strong>{file?.name || sample.filename}</strong>
-                    <span>{sample.name} · Fixture-derived fields</span>
+                    <span>{sample.name} · Sample-derived fields</span>
                   </div>
                   <Tag id="extraction-confidence" tone={sample.confidence === 'High' ? 'success' : 'warning'}>
                     {sample.confidence} confidence
@@ -340,7 +334,7 @@ export default function Intake() {
                       value={quantity}
                       onChange={e => setQuantity(e.target.value)}
                     />
-                    <small>Fixture confidence: {sample.confidence}</small>
+                    <small>Sample confidence: {sample.confidence}</small>
                   </label>
                   <label>
                     Emission factor (tCO₂e / {sample.unit})
@@ -364,7 +358,7 @@ export default function Intake() {
                       value={rate}
                       onChange={e => setRate(e.target.value)}
                     />
-                    <small>Illustrative cost, excluding tax</small>
+                    <small>Indicative cost, excluding tax</small>
                   </label>
                   <label>
                     Reporting month

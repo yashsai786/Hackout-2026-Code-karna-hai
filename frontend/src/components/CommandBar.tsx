@@ -108,7 +108,7 @@ export const CommandBar = ({
       >
         <Search size={20} strokeWidth={1.7} />
         <label className="sr-only" htmlFor="command">
-          Rule-based navigation command
+          Navigation command
         </label>
         <input
           id="command"
@@ -119,7 +119,7 @@ export const CommandBar = ({
           autoComplete="off"
         />
         <span className="command-rule" data-testid="command-rule-label">
-          Rule-based navigation
+          Try “cement” or “ledger”
         </span>
         <button
           type="button"

@@ -134,7 +134,7 @@ export const Shell = ({ children }: { children: ReactNode }) => {
           </main>
           <footer className="app-footer" data-testid="app-footer">
             <span>Built for a lower-carbon industry.</span>
-            <span>Illustrative dataset · FY 2025</span>
+            <span>Sample dataset · FY 2025</span>
           </footer>
         </>
       )}

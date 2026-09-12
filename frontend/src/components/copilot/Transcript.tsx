@@ -104,7 +104,7 @@ export const Transcript = () => {
             <>
               <Evidence runs={turn.toolRuns} />
               <Tag id={`copilot-illustrative-${turn.id}`} tone="blue">
-                Illustrative estimate
+                Estimate
               </Tag>
             </>
           )}

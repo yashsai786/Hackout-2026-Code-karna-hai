@@ -4,7 +4,7 @@ import { Search, ArrowUpRight, Factory as FactoryIcon, MapPin } from 'lucide-rea
 import { useSession } from '../state/SessionContext';
 import { PageHeading, Tag, fmt, compact, Empty, Btn } from '../components/Primitives';
 import { NewFactory } from '../components/NewFactory';
-import { sectors } from '../domain/fixtures';
+import { sectors, sources, sourceLabels } from '../domain/fixtures';
 import { intensity } from '../domain/calculations';
 export default function Factories() {
   const { factories } = useSession();
@@ -68,7 +68,7 @@ export default function Factories() {
         </div>
       </div>
       <div className="results-label" data-testid="factory-results">
-        {rows.length} factories <span>· Illustrative FY 2025 baseline</span>
+        {rows.length} factories <span>· Sample FY 2025 baseline</span>
       </div>
       {rows.length ? (
         <div className="factory-grid">
@@ -110,8 +110,14 @@ export default function Factories() {
                 </div>
               </div>
               <div className="factory-card-footer">
-                <span className="tiny-label">
-                  {f.baseline === null ? 'NO BASELINE' : 'ILLUSTRATIVE BASELINE'}
+                <span className="tiny-label" data-testid={`factory-top-source-${f.id}`}>
+                  {f.baseline === null
+                    ? 'No baseline'
+                    : (() => {
+                        // The one fact a reader wants per plant: where most of its carbon comes from.
+                        const top = [...sources].sort((a, b) => f.hotspots[b] - f.hotspots[a])[0];
+                        return `${sourceLabels[top].split(' ')[0]} ${Math.round((f.hotspots[top] / f.baseline) * 100)}% of emissions`;
+                      })()}
                 </span>
                 <Tag
                   id={`factory-confidence-${f.id}`}

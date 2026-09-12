@@ -94,7 +94,7 @@ export const FactoryMap = ({
         zoomControl={!full}
         attributionControl={true}
         className="leaflet-map"
-        aria-label="Illustrative Indian factory locations"
+        aria-label="Factory locations across India"
       >
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -162,7 +162,7 @@ export const FactoryMap = ({
       </div>
       {!full && (
         <div className="map-footnote" data-testid="map-location-note">
-          Illustrative locations · Not facility boundaries
+          Approximate locations · not facility boundaries
         </div>
       )}
     </div>

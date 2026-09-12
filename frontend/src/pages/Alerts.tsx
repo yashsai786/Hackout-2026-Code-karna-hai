@@ -70,7 +70,7 @@ export default function Alerts() {
         <section>
           <SectionHeading
             title="Your inbox"
-            note={`${inbox.filter(m => !m.read).length} unread · Demonstration messages`}
+            note={`${inbox.filter(m => !m.read).length} unread`}
             action={
               <div className="segmented small" role="group" aria-label="Inbox filter">
                 <button
@@ -124,7 +124,7 @@ export default function Alerts() {
                       month: 'short',
                       year: 'numeric',
                     })}{' '}
-                    · {m.type === 'digest' ? 'Session snapshot' : 'Fixture alert'}
+                    · {m.type === 'digest' ? 'Session snapshot' : 'Portfolio alert'}
                   </span>
                 </div>
                 <ChevronRight size={15} />
@@ -168,14 +168,13 @@ export default function Alerts() {
             </div>
           ))}
           <Notice id="preferences-note">
-            Preferences remain active while navigating this session and reset on refresh. Existing fixture
-            messages stay in the inbox; no live alert feed is connected.
+            Preferences last for this session. No live alert feed or email service is connected.
           </Notice>
           <div className="delivery-note">
             <Mail size={19} />
             <div>
               <strong>In-app delivery only</strong>
-              <p>No email service or automatic schedule is connected.</p>
+              <p>Alerts appear here, and in the digest.</p>
             </div>
           </div>
         </aside>

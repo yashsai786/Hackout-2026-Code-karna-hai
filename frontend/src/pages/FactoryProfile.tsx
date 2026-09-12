@@ -611,10 +611,7 @@ export default function FactoryProfile() {
           <h2 data-testid="profile-save-title">
             Saving this unlocks hotspots, ranked measures, costs and credits.
           </h2>
-          <p>
-            Figures remain illustrative estimates computed from the values you entered. Nothing is registry
-            verified.
-          </p>
+          <p>Estimates computed from the values you entered; nothing is registry verified.</p>
         </div>
         <div className="button-row">
           <Btn variant="primary" data-testid="profile-save" disabled={!ready} onClick={save}>

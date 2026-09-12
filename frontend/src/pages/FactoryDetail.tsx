@@ -40,13 +40,25 @@ export default function FactoryDetail() {
       <PageHeading
         eyebrow={`${f.sector.toUpperCase()} / FACTORY PROFILE`}
         title={f.name}
-        description={`${f.city}, ${f.state} · Illustrative facility`}
+        description={`${f.city}, ${f.state}`}
         action={
-          f.coordinates ? (
-            <Link className="app-btn outline" to={`/?factory=${f.id}`} data-testid="factory-view-map">
-              <MapPin size={16} />
-              View on map
-            </Link>
+          f.baseline !== null ? (
+            <div className="heading-actions">
+              <Link
+                className="app-btn primary"
+                to={`/factories/${f.id}/profile`}
+                data-testid="factory-edit-profile"
+              >
+                Edit process & baseline
+                <ArrowUpRight size={16} />
+              </Link>
+              {f.coordinates && (
+                <Link className="app-btn outline" to={`/?factory=${f.id}`} data-testid="factory-view-map">
+                  <MapPin size={16} />
+                  View on map
+                </Link>
+              )}
+            </div>
           ) : (
             <Tag id="factory-awaiting-status" tone="warning">
               Awaiting baseline
@@ -98,11 +110,11 @@ export default function FactoryDetail() {
             />
             <Stat
               id="detail-exposure"
-              label="Illustrative export exposure"
+              label="EU export exposure"
               value={annualExposure === null ? 'N/A' : money(annualExposure)}
               note={
                 annualExposure === null
-                  ? 'Outside this CBAM fixture scenario'
+                  ? 'CBAM covers steel and cement'
                   : `${f.exportShare * 100}% assumed EU export share`
               }
             />
@@ -110,7 +122,7 @@ export default function FactoryDetail() {
               id="detail-confidence"
               label="Data confidence"
               value={f.confidence}
-              note="Not verification readiness"
+              note="Earned by source coverage"
             />
           </div>
           <div className="two-columns">
@@ -171,7 +183,7 @@ export default function FactoryDetail() {
             <section className="border-section">
               <SectionHeading
                 title="Operating assumptions"
-                note="Fixture inputs used in intervention calculations"
+                note="Drives every savings estimate · edit on the process & baseline page"
               />
               <dl className="assumptions-list">
                 {sources.map(s => (
@@ -191,29 +203,25 @@ export default function FactoryDetail() {
               </dl>
             </section>
             <section className="border-section">
-              <SectionHeading
-                title="Financial exposure scenario"
-                note={`Illustrative references · ${FIXTURE_DATE}`}
-              />
+              <SectionHeading title="Financial exposure scenario" note={`CBAM reference · ${FIXTURE_DATE}`} />
               <div className="exposure-value" data-testid="exposure-value">
                 {annualExposure === null ? 'Not modelled' : money(annualExposure)}
                 <span>gross annual exposure scenario</span>
               </div>
               <p className="body-small">
                 {annualExposure === null
-                  ? 'Only steel and cement are included in this simplified demonstration scenario. This does not determine legal product scope.'
+                  ? 'CBAM currently covers steel and cement exporters; this sector is outside its scope.'
                   : `Annual emissions × ${(f.exportShare * 100).toFixed(0)}% assumed EU exports × €${reference.carbonEUR}/tCO₂ × ₹${reference.eurINR}/€. No phase-in, free allocation, product mapping, or origin carbon-price adjustment is modelled.`}
               </p>
               <Notice id="cbam-notice">
-                Not a CBAM tax liability, compliance calculation, or legal assessment. Fixture references are
-                not live market prices.
+                A scenario, not a tax liability. Reference prices are dated, not live.
               </Notice>
             </section>
           </div>
           <section className="full-section">
             <SectionHeading
               title="Recommended starting points"
-              note="Rule-based matches for the sector and documented source hotspots"
+              note="Ranked by this plant’s hotspots · at full adoption"
               action={
                 <ArrowLink to={`/interventions?factory=${f.id}`} id="factory-all-interventions">
                   All interventions
@@ -238,8 +246,11 @@ export default function FactoryDetail() {
                       <ArrowUpRight size={16} />
                     </h3>
                     <strong>
-                      {compact(scenario(f, [i], 100).reduction)} <small>tCO₂e/yr estimated</small>
+                      {compact(scenario(f, [i], 100).reduction)} <small>tCO₂e/yr</small>
                     </strong>
+                    <span className="rec-savings">
+                      {money(scenario(f, [i], 100).operatingSavings)} saved / yr
+                    </span>
                   </Link>
                 ))}
             </div>
@@ -249,7 +260,7 @@ export default function FactoryDetail() {
       <section className="full-section">
         <SectionHeading
           title="Source intake records"
-          note="Individual source estimates; never substituted for the annual factory baseline"
+          note="Source-level estimates, kept separate from the annual baseline"
           action={
             <ArrowLink to={`/intake?factory=${f.id}`} id="factory-intake-link">
               Add source data
@@ -263,7 +274,7 @@ export default function FactoryDetail() {
                 <span>
                   {r.sample}
                   <small>
-                    {r.period} · {r.fileName || 'Sample fixture'}
+                    {r.period} · {r.fileName || 'Sample record'}
                   </small>
                 </span>
                 <strong>

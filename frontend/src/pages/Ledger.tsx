@@ -63,15 +63,15 @@ export default function Ledger() {
         }
       />
       <Notice id="ledger-simulation-disclaimer">
-        Every record and status is simulated. “Issued” does <strong>not</strong> mean registry verification,
-        and never creates revenue. Estimated savings remain separate from realised totals.
+        Records are planning estimates. “Issued” is a workflow stage, <strong>not</strong> registry
+        verification, and creates no revenue.
       </Notice>
       <div className="stats-grid">
         <Stat
           id="ledger-record-count"
           label="Scenario records"
           value={String(rows.length).padStart(2, '0')}
-          note="Current filters · simulation only"
+          note="Under current filters"
         />
         <Stat
           id="ledger-reduction"
@@ -109,10 +109,7 @@ export default function Ledger() {
           )}
         </section>
         <section className="border-section">
-          <SectionHeading
-            title="Scenario progression"
-            note="Illustrative workflow, not a verification process"
-          />
+          <SectionHeading title="Scenario progression" note="A workflow stage, not verification" />
           <div className="status-breakdown">
             {(['Estimated', 'In review', 'Issued'] as const).map((s, i) => (
               <div key={s} data-testid={`ledger-status-count-${s.toLowerCase().replace(' ', '-')}`}>
@@ -120,7 +117,7 @@ export default function Ledger() {
                   {i === 2 ? <Check size={17} /> : `0${i + 1}`}
                 </span>
                 <div>
-                  <strong>{s === 'Issued' ? 'Issued · simulated' : s}</strong>
+                  <strong>{s === 'Issued' ? 'Issued' : s}</strong>
                   <div className="status-track">
                     <i
                       style={{
@@ -172,7 +169,7 @@ export default function Ledger() {
               <option value="all">All statuses</option>
               <option>Estimated</option>
               <option>In review</option>
-              <option value="Issued">Issued · simulated</option>
+              <option value="Issued">Issued</option>
             </select>
           </div>
         </div>
@@ -183,7 +180,7 @@ export default function Ledger() {
         )}
         {params.get('record') && !ledger.some(e => e.id === params.get('record')) && (
           <Notice id="ledger-invalid-record">
-            That record is not in the current session. Refreshing restores the demonstration dataset.
+            That record is not in the current session. Refreshing restores the sample dataset.
           </Notice>
         )}
         {rows.length ? (
@@ -237,16 +234,15 @@ export default function Ledger() {
                           e.status === 'Estimated' ? 'blue' : e.status === 'In review' ? 'warning' : 'success'
                         }
                       >
-                        {e.status === 'Issued' ? 'Issued · simulated' : e.status}
+                        {e.status === 'Issued' ? 'Issued' : e.status}
                       </Tag>
-                      <small className="registry-label">Not registry verified</small>
                     </td>
                     <td>
                       {e.status !== 'Issued' ? (
                         <Btn
                           className="icon-btn"
                           aria-label={`Advance simulation for ${e.id}`}
-                          title="Advance simulated status"
+                          title="Advance status"
                           data-testid={`advance-${e.id}`}
                           onClick={() => setPending(e.id)}
                         >
@@ -287,13 +283,13 @@ export default function Ledger() {
         }}
       >
         <DialogContent className="app-dialog" data-testid="advance-status-dialog">
-          <DialogTitle data-testid="advance-status-title">Advance simulated status?</DialogTitle>
+          <DialogTitle data-testid="advance-status-title">Advance status?</DialogTitle>
           <DialogDescription data-testid="advance-status-description">
             {pendingRow?.id}: {pendingRow?.status} →{' '}
-            {pendingRow?.status === 'Estimated' ? 'In review' : 'Issued · simulated'}
+            {pendingRow?.status === 'Estimated' ? 'In review' : 'Issued'}
           </DialogDescription>
           <Notice id="status-advance-warning">
-            This changes a demonstration label only. No independent verification, registry issuance, measured
+            This changes a workflow stage only. No independent verification, registry issuance, measured
             savings, or financial revenue will occur.
           </Notice>
           <div className="dialog-actions">

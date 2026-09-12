@@ -136,7 +136,7 @@ export const NotFound = ({
 }) => (
   <Empty
     title={`${kind} not found`}
-    description="This link does not match an item in the current demonstration session."
+    description="This link does not match anything in the current session."
     action={
       <Link className="text-link" to={to} data-testid="not-found-back">
         <ArrowLeft size={16} />

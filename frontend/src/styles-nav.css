@@ -1286,3 +1286,17 @@ textarea {
     font-size: 12px;
   }
 }
+
+/* ---------- Page-heading with two actions; savings line on recommendation cards ---------- */
+.heading-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.recommendation .rec-savings {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}

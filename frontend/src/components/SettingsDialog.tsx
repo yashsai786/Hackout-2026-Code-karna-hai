@@ -280,13 +280,13 @@ export const SettingsDialog = () => {
                 onClick={() => {
                   if (
                     confirm(
-                      'Reset every factory, baseline, record and ledger entry back to the demonstration dataset?',
+                      'Reset every factory, baseline, record and ledger entry back to the sample dataset?',
                     )
                   )
                     resetSessionData();
                 }}
               >
-                Reset demonstration data
+                Reset sample data
               </Btn>
             </div>
           </section>

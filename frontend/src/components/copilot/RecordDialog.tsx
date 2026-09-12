@@ -46,8 +46,8 @@ export const RecordDialog = () => {
         )}
         <Notice id="copilot-record-warning">
           The Copilot proposed this scenario; the figures come from the session calculator. Recording adds a
-          demonstration label only. No independent verification, registry issuance, measured savings, or
-          financial revenue will occur.
+          workflow stage only. No independent verification, registry issuance, measured savings, or financial
+          revenue will occur.
         </Notice>
         <div className="dialog-actions">
           <Btn data-testid="copilot-cancel-record" onClick={declinePending}>

@@ -47,7 +47,7 @@ const steps = [
   {
     key: 'independentReview' as const,
     title: 'Independent verification',
-    body: 'Review by an accredited verifier and acceptance by a suitable registry. Not performed in this demo.',
+    body: 'Review by an accredited verifier and acceptance by a suitable registry.',
     icon: BadgeCheck,
   },
 ];
@@ -71,9 +71,7 @@ export default function Credits() {
         }
       />
       <Notice id="credits-disclaimer">
-        All credit figures are illustrative. Technical emission reductions do not automatically create
-        credits, establish eligibility, or guarantee issuance, price, or sale. No credits are issued or sold
-        here.
+        Technical reductions do not automatically become credits. Nothing here is issued, verified or sold.
       </Notice>
       <div className="factory-context">
         <div>
@@ -127,16 +125,16 @@ export default function Credits() {
             />
             <Stat
               id="credit-illustrative-volume"
-              label="Illustrative volume, if eligible"
+              label="Potential credit volume"
               value={compact(volume)}
               unit="units/yr"
-              note="70% modelling factor · not issuance"
+              note="70% modelling factor · if eligible"
             />
             <Stat
               id="credit-reference-range"
               label="Reference price range"
               value="₹600–1,500"
-              note={`Per unit · fixture dated ${FIXTURE_DATE}`}
+              note={`Per unit · reference dated ${FIXTURE_DATE}`}
             />
             <Stat
               id="credit-realised-revenue"
@@ -147,10 +145,7 @@ export default function Credits() {
           </div>
           <div className="two-columns credits-columns">
             <section className="border-section">
-              <SectionHeading
-                title="What sits behind the number"
-                note="A deliberately conditional illustration"
-              />
+              <SectionHeading title="What sits behind the number" note="How the volume is derived" />
               <div className="credit-formula">
                 <div>
                   <span>01</span>
@@ -163,21 +158,21 @@ export default function Credits() {
                 <div>
                   <span>02</span>
                   <p>
-                    Illustrative modelling factor<strong>70% of technical reduction</strong>
+                    Modelling factor<strong>70% of technical reduction</strong>
                   </p>
                   <strong>× 0.70</strong>
                 </div>
                 <div>
                   <span>03</span>
                   <p>
-                    Conditional illustrative volume
-                    <strong>Only if all eligibility requirements are met</strong>
+                    Potential volume
+                    <strong>If every eligibility requirement is met</strong>
                   </p>
                   <strong>{fmt(volume)} units</strong>
                 </div>
               </div>
               <div className="conditional-value" data-testid="credit-conditional-value">
-                <span>Illustrative gross value range, not revenue</span>
+                <span>Indicative gross value, not revenue</span>
                 <strong>
                   {money(valueLowINR)} – {money(valueHighINR)}
                 </strong>
@@ -207,25 +202,20 @@ export default function Credits() {
                     <i key={s.key} className={f.readiness[s.key] ? 'complete' : ''} />
                   ))}
                 </div>
-                <p>Fixture documentation checks completed</p>
+                <p>Documentation checks completed</p>
               </div>
               <Notice id="credits-readiness-disclaimer">
-                A “High confidence” baseline is not verified credit readiness. Independent review is
-                incomplete for every factory in this demonstration.
+                High data confidence is not credit readiness; independent review is still required.
               </Notice>
               <p className="body-small muted">
-                The reference range is a dated, fictional market assumption, not a quote or offer. No registry
-                account, methodology validation, or sales channel is connected.
+                The reference range is dated, not a quote. No registry or sales channel is connected.
               </p>
             </section>
           </div>
         </>
       )}
       <section className="full-section">
-        <SectionHeading
-          title="The path to verification"
-          note="Each step requires evidence beyond this demonstration"
-        />
+        <SectionHeading title="The path to verification" note="Each step needs evidence beyond this tool" />
         <div className="verification-grid">
           {steps.map((s, i) => (
             <div className="verification-step" key={s.key} data-testid={`verification-step-${s.key}`}>
@@ -236,7 +226,7 @@ export default function Credits() {
               <h3>{s.title}</h3>
               <p>{s.body}</p>
               <Tag id={`verification-status-${s.key}`} tone={f.readiness[s.key] ? 'success' : 'warning'}>
-                {f.readiness[s.key] ? 'Fixture documented' : 'Evidence needed'}
+                {f.readiness[s.key] ? 'Documented' : 'Evidence needed'}
               </Tag>
             </div>
           ))}
