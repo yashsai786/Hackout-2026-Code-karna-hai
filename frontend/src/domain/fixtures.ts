@@ -29,6 +29,13 @@ export const reference = {
   processRateINR: 600,
 };
 export let referenceSource: 'api' | 'built-in' = 'built-in';
+export let catalogueSource: 'api' | 'built-in' = 'built-in';
+/** Replace the catalogue in place so every module that imported the array sees the API's version. */
+export function hydrateInterventions(list: Intervention[]) {
+  if (!Array.isArray(list) || !list.length) return;
+  interventions.splice(0, interventions.length, ...list);
+  catalogueSource = 'api';
+}
 export function hydrateReference(patch: Partial<typeof reference>, source: 'api' | 'built-in' = 'api') {
   for (const [k, v] of Object.entries(patch))
     if (k in reference && typeof v === 'number' && Number.isFinite(v))
@@ -419,30 +426,6 @@ export const bundles = [
     compatible: true as const,
   },
 ];
-export const initialInbox: InboxItem[] = [
-  {
-    id: 'alert-1',
-    title: 'Bhilai leads the emissions ranking',
-    body: 'Bhilai Steel Works accounts for 8,42,000 tCO₂e in the illustrative 2025 baseline. Thermal energy represents 50% of this total. Review the baseline and thermal interventions before recording an estimate.',
-    date: '2026-02-01T09:00:00Z',
-    read: false,
-    type: 'baseline',
-  },
-  {
-    id: 'alert-2',
-    title: 'Export exposure needs a closer look',
-    body: 'Steel and cement factory scenarios use a €75/tCO₂ reference and ₹90/€ fixture, dated 01 Feb 2026. These gross exposure scenarios are not a CBAM tax liability or legal assessment.',
-    date: '2026-02-01T08:30:00Z',
-    read: false,
-    type: 'exposure',
-  },
-  {
-    id: 'alert-3',
-    title: 'Baseline documentation gaps',
-    body: 'Chandrapur Cement, Ballari Steel Co. and Ludhiana Spinning Co. have incomplete baseline documentation in this demonstration. Confidence labels do not establish verification readiness.',
-    date: '2026-01-31T14:00:00Z',
-    read: true,
-    type: 'baseline',
-  },
-];
+/** Alerts are computed by the API from live data (GET /api/v1/alerts); nothing is pre-written. */
+export const initialInbox: InboxItem[] = [];
 export const initialLedger: LedgerEntry[] = [];

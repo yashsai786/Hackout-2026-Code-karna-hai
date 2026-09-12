@@ -97,5 +97,6 @@ export type InboxItem = {
   body: string;
   date: string;
   read: boolean;
-  type: 'digest' | 'exposure' | 'baseline';
+  type: 'digest' | 'exposure' | 'baseline' | 'ranking' | 'location' | 'ledger';
+  factoryId?: string;
 };

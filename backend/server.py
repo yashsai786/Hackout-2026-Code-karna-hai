@@ -17,6 +17,8 @@ from starlette.middleware.cors import CORSMiddleware
 from store import Store, SettingsStore
 from reference import REFERENCE, REFERENCE_META
 from extract import extract as extract_document
+from alerts import build_alerts
+import json as _json
 import ocr
 
 load_dotenv(Path(__file__).parent / '.env')
@@ -406,3 +408,22 @@ async def intake_extract(file: UploadFile = File(...), hint: Optional[str] = For
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:  # a malformed spreadsheet should read as a message, not a stack trace
         raise HTTPException(status_code=422, detail=f'Could not read the file: {e}')
+
+
+# ------------------------------------------------------------------------------------------------
+# Intervention catalogue and computed alerts.
+# ------------------------------------------------------------------------------------------------
+CATALOGUE_PATH = Path(__file__).parent / 'catalogue.json'
+
+
+@app.get('/api/v1/interventions')
+async def interventions_catalogue() -> Dict:
+    """The measures the engine prices. Served here so the catalogue is data, not a frontend constant."""
+    return {'interventions': _json.loads(CATALOGUE_PATH.read_text()), 'source': 'backend/catalogue.json'}
+
+
+@app.get('/api/v1/alerts')
+async def alerts() -> Dict:
+    """Alerts derived from the current session document at request time."""
+    doc = await state['store'].load() or {'factories': [], 'ledger': []}
+    return {'alerts': build_alerts(doc), 'generatedAt': __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}

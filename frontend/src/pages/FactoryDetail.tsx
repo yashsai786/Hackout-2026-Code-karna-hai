@@ -155,7 +155,10 @@ export default function FactoryDetail() {
                 })}
             </section>
             <section className="border-section">
-              <SectionHeading title="Emissions through the year" note="Monthly history · FY 2025 · tCO₂e" />
+              <SectionHeading
+                title="Emissions through the year"
+                note="Modelled monthly profile of the annual baseline · tCO₂e"
+              />
               <HistoryChart data={f.history} />
             </section>
           </div>

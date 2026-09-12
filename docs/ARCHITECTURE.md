@@ -73,6 +73,7 @@ Everything numeric lives in `frontend/src/domain/`:
 | `calculations.ts` | every formula — `scenario`, `capexFor`, `roiPercent`, `creditPotential`, `portfolioTotals`, `csvExport` |
 | `fixtures.ts` | emission factors, tariffs, interventions, seed plants |
 | `types.ts` | the shared shapes |
+| `fixtures.ts` also holds the offline fallbacks for the factor table and catalogue; both are hydrated from the API before `App` loads, and a test asserts the served catalogue equals the fallback |
 | `validation.ts` | fixture invariants, asserted by tests |
 
 Nothing recomputes. When the Interventions card shows a return per year and the Copilot quotes one,
@@ -120,6 +121,8 @@ except the browser's own calls to OpenRouter with the operator's key.
 | `GET/PUT/DELETE /api/v1/state` | the session document |
 | `GET/PUT/DELETE /api/v1/settings` | OpenRouter key and default model |
 | `GET /api/v1/reference` | emission factors and unit prices |
+| `GET /api/v1/interventions` | the measure catalogue (`backend/catalogue.json`; the frontend copy is a tested fallback) |
+| `GET /api/v1/alerts` | alerts computed from the session document at request time |
 | `POST /api/v1/intake/extract` | read CSV, XLSX, text, PDF, photo or scan; evidence per figure, OCR confidence when used |
 | `POST /api/v1/hotspots` | the model's emission split |
 | `POST /api/v1/analyse` | split vs declared, peer benchmark, what-ifs |

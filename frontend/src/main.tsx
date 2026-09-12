@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { hydrateReference } from './domain/fixtures';
-import { fetchReference } from './lib/leakpointApi';
+import { hydrateReference, hydrateInterventions } from './domain/fixtures';
+import type { Intervention } from './domain/types';
+import { fetchReference, fetchInterventions } from './lib/leakpointApi';
 import './index.css';
 import './styles.css';
 import './styles-accessibility.css';
@@ -33,11 +34,12 @@ class Boundary extends React.Component<{ children: React.ReactNode }, { error: b
 // footer says so.
 async function boot() {
   try {
-    const ref = await Promise.race([
-      fetchReference(),
-      new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('timeout')), 2500)),
-    ]);
+    const timeout = new Promise<never>((_, reject) =>
+      window.setTimeout(() => reject(new Error('timeout')), 2500),
+    );
+    const [ref, cat] = await Promise.race([Promise.all([fetchReference(), fetchInterventions()]), timeout]);
     hydrateReference(ref.reference, 'api');
+    hydrateInterventions(cat.interventions as Intervention[]);
   } catch {
     /* built-in factors remain */
   }

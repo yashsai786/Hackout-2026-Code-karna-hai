@@ -82,7 +82,7 @@ Leakpoint replaces the first and most expensive step of that audit: locating the
 | Quantify against a baseline | Baseline, intensity per tonne, and a confidence grade derived from data completeness |
 | Recommend circular alternatives | **Interventions** — sector- and material-eligible measures, ranked by this plant's hotspots |
 | Show the economics | Reduction, operating savings, return per year, capex scaled by the six-tenths rule, payback, 36-month cashflow |
-| Track what was decided | **Ledger** — recorded commitments, portfolio totals, CSV export |
+| Track what was decided | **Ledger** — recorded commitments, portfolio totals, CSV export. **Alerts** — computed by the API from the live data (ranking, documentation gaps, CBAM exposure, unmapped plants, records in review) |
 | Surface exposure and value | **Credits** — carbon-credit potential per plant. **Factory detail** — CBAM exposure for steel and cement exporters |
 
 Eleven routes, all reachable, none decorative: Command Map · Intake · Factories · Factory detail ·
@@ -182,10 +182,11 @@ scikit-learn · Vitest · pytest · GitHub Actions
 
 | | |
 | --- | --- |
-| Frontend tests | 64 (calculations, commands, map layers, analysis narrative, Copilot tool contracts) |
+| Frontend tests | 65 (calculations, commands, map layers, analysis narrative, catalogue parity, Copilot tool contracts) |
 | Model tests | 7 (behaviour, provenance, the claim above) |
-| API contract tests | 19 (state on MongoDB, settings, analysis, extraction incl. OCR, model — against a live service) |
-| Accessibility | 0 WCAG 2.1 A/AA violations across all routes (axe-core) |
+| API contract tests | 21 (state on MongoDB, settings, catalogue, alerts, analysis, extraction incl. OCR, model — against a live service) |
+| Accessibility | 0 WCAG 2.1 A/AA violations across all 11 routes (axe-core) |
+| Production bundle | `vite preview` of `dist/` verified against the live API — every screen, clean console |
 | Types | `strict: true`, no `any` escapes, enforced in CI |
 | Formatting | Prettier, enforced in CI |
 

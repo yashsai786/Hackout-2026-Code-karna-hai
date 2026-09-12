@@ -70,7 +70,7 @@ export default function Alerts() {
         <section>
           <SectionHeading
             title="Your inbox"
-            note={`${inbox.filter(m => !m.read).length} unread`}
+            note={`${inbox.filter(m => !m.read).length} unread · computed from live data`}
             action={
               <div className="segmented small" role="group" aria-label="Inbox filter">
                 <button
@@ -124,7 +124,7 @@ export default function Alerts() {
                       month: 'short',
                       year: 'numeric',
                     })}{' '}
-                    · {m.type === 'digest' ? 'Session snapshot' : 'Portfolio alert'}
+                    · {m.type === 'digest' ? 'Session snapshot' : 'Computed from live data'}
                   </span>
                 </div>
                 <ChevronRight size={15} />

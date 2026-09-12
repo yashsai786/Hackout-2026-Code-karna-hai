@@ -184,3 +184,17 @@ export async function extractDocument(
   }
   return res.json() as Promise<Extraction>;
 }
+
+// ---- Catalogue and computed alerts ------------------------------------------------------------------
+export const fetchInterventions = () =>
+  call<{ interventions: unknown[]; source: string }>('/api/v1/interventions');
+export type ApiAlert = {
+  id: string;
+  type: 'ranking' | 'baseline' | 'exposure' | 'location' | 'ledger';
+  title: string;
+  body: string;
+  date: string;
+  read: boolean;
+  factoryId?: string;
+};
+export const fetchAlerts = () => call<{ alerts: ApiAlert[]; generatedAt: string }>('/api/v1/alerts');

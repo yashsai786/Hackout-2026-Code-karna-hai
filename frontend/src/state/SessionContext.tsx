@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useRef, useEffect, type ReactNode 
 import { factories as fixtureFactories, interventions, initialInbox } from '../domain/fixtures';
 import { scenario } from '../domain/calculations';
 import type { Factory, IntakeRecord, LedgerEntry, InboxItem, Sector } from '../domain/types';
-import { fetchState, saveState, deleteState, apiConfigured } from '../lib/leakpointApi';
+import { fetchState, saveState, deleteState, apiConfigured, fetchAlerts } from '../lib/leakpointApi';
 
 function seedLedger(): LedgerEntry[] {
   return [
@@ -163,6 +163,47 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Alerts are computed by the API from the data. Merge them into the inbox, keeping read flags and
+  // any digests the operator generated; drop computed alerts the data no longer produces.
+  useEffect(() => {
+    if (sync !== 'api' || !hydrated.current) return;
+    const t = window.setTimeout(async () => {
+      try {
+        const { alerts } = await fetchAlerts();
+        setInbox(cur => {
+          const digests = cur.filter(m => m.type === 'digest');
+          const merged: InboxItem[] = alerts.map(a => {
+            const prev = cur.find(m => m.id === a.id);
+            return {
+              id: a.id,
+              title: a.title,
+              body: a.body,
+              date: prev?.date ?? a.date,
+              read: prev?.read ?? false,
+              type: a.type,
+              factoryId: a.factoryId,
+            };
+          });
+          const next = [...merged, ...digests];
+          const same =
+            next.length === cur.length &&
+            next.every(
+              (m, i) =>
+                m.id === cur[i].id &&
+                m.title === cur[i].title &&
+                m.body === cur[i].body &&
+                m.read === cur[i].read,
+            );
+          return same ? cur : next;
+        });
+      } catch {
+        /* the inbox keeps what it has */
+      }
+    }, 600);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [factories, ledger, sync]);
 
   // Write through, debounced, once hydrated. Only what changed since the last successful save.
   useEffect(() => {

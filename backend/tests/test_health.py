@@ -209,3 +209,17 @@ def test_health_names_the_store_in_use():
 def test_health_reports_ocr():
     h = requests.get(f'{BASE_URL}/api/health', timeout=10).json()
     assert h['ocr'] in ('ready', 'loading')
+
+
+def test_catalogue_is_served_from_the_backend():
+    c = requests.get(f'{BASE_URL}/api/v1/interventions', timeout=10).json()
+    ids = {i['id'] for i in c['interventions']}
+    assert {'waste-heat', 'solar', 'material-substitution'} <= ids and c['source'].endswith('catalogue.json')
+
+
+def test_alerts_are_computed_from_the_data():
+    a = requests.get(f'{BASE_URL}/api/v1/alerts', timeout=10).json()['alerts']
+    types = {x['type'] for x in a}
+    assert 'ranking' in types and all(x['id'] and x['title'] and x['body'] for x in a)
+    ranking = next(x for x in a if x['type'] == 'ranking')
+    assert 'leads the emissions ranking' in ranking['title']

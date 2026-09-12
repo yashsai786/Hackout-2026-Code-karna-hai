@@ -1,0 +1,228 @@
+[
+  {
+    "id": "waste-heat",
+    "name": "Waste heat recovery",
+    "category": "Energy efficiency",
+    "description": "Recover process heat and displace purchased thermal energy with a heat-recovery system.",
+    "sectors": [
+      "Steel",
+      "Cement",
+      "Chemicals"
+    ],
+    "source": "fuel",
+    "reductionRate": 0.18,
+    "costSavingRate": 0.18,
+    "capex": 85000000,
+    "annualOpex": 2500000,
+    "duration": "6–9 months",
+    "complexity": "Medium",
+    "compatibleWith": [
+      "solar",
+      "motor-efficiency",
+      "waste-recovery",
+      "clinker",
+      "material-substitution"
+    ],
+    "addressableRef": 23670,
+    "steps": [
+      "Complete a thermal energy audit",
+      "Size the recovery system",
+      "Install heat exchangers and metering",
+      "Commission and monitor displaced fuel"
+    ]
+  },
+  {
+    "id": "solar",
+    "name": "On-site solar generation",
+    "category": "Renewable energy",
+    "description": "Replace a portion of grid electricity with on-site solar generation.",
+    "sectors": [
+      "Steel",
+      "Cement",
+      "Textiles",
+      "Chemicals"
+    ],
+    "source": "electricity",
+    "reductionRate": 0.22,
+    "costSavingRate": 0.2,
+    "capex": 120000000,
+    "annualOpex": 1800000,
+    "duration": "4–6 months",
+    "complexity": "Medium",
+    "compatibleWith": [
+      "waste-heat",
+      "boiler",
+      "waste-recovery",
+      "clinker",
+      "material-substitution"
+    ],
+    "addressableRef": 11924,
+    "steps": [
+      "Assess usable rooftop and land",
+      "Validate grid interconnection",
+      "Install and commission the array",
+      "Meter self-consumed generation"
+    ]
+  },
+  {
+    "id": "motor-efficiency",
+    "name": "High-efficiency drives",
+    "category": "Energy efficiency",
+    "description": "Upgrade motors and variable-speed drives to reduce electricity demand.",
+    "sectors": [
+      "Steel",
+      "Cement",
+      "Textiles",
+      "Chemicals"
+    ],
+    "source": "electricity",
+    "reductionRate": 0.12,
+    "costSavingRate": 0.12,
+    "capex": 28000000,
+    "annualOpex": 400000,
+    "duration": "2–4 months",
+    "complexity": "Low",
+    "compatibleWith": [
+      "waste-heat",
+      "boiler",
+      "waste-recovery",
+      "clinker",
+      "material-substitution"
+    ],
+    "addressableRef": 6504,
+    "steps": [
+      "Log operating load profiles",
+      "Select high-efficiency motors",
+      "Upgrade drives during shutdown",
+      "Validate energy savings"
+    ]
+  },
+  {
+    "id": "boiler",
+    "name": "Boiler optimisation",
+    "category": "Operational improvement",
+    "description": "Improve combustion settings and maintenance practices with existing equipment.",
+    "sectors": [
+      "Steel",
+      "Chemicals",
+      "Textiles"
+    ],
+    "source": "fuel",
+    "reductionRate": 0.06,
+    "costSavingRate": 0.06,
+    "capex": 0,
+    "annualOpex": 600000,
+    "duration": "2–4 weeks",
+    "complexity": "Low",
+    "compatibleWith": [
+      "solar",
+      "motor-efficiency",
+      "waste-recovery",
+      "material-substitution"
+    ],
+    "addressableRef": 6027,
+    "steps": [
+      "Measure excess oxygen",
+      "Tune air-to-fuel ratio",
+      "Repair insulation and steam leaks",
+      "Monitor fuel per unit of output"
+    ]
+  },
+  {
+    "id": "clinker",
+    "name": "Clinker substitution",
+    "category": "Process innovation",
+    "description": "Replace a share of clinker with suitable supplementary cementitious materials.",
+    "sectors": [
+      "Cement"
+    ],
+    "source": "process",
+    "reductionRate": 0.16,
+    "costSavingRate": 0.14,
+    "capex": 55000000,
+    "annualOpex": 1500000,
+    "duration": "6–12 months",
+    "complexity": "High",
+    "compatibleWith": [
+      "waste-heat",
+      "solar",
+      "motor-efficiency",
+      "waste-recovery"
+    ],
+    "addressableRef": 37382.4,
+    "steps": [
+      "Qualify substitute materials",
+      "Validate product performance",
+      "Adapt blending and handling",
+      "Document the revised clinker ratio"
+    ]
+  },
+  {
+    "id": "waste-recovery",
+    "name": "Waste & water recovery",
+    "category": "Circularity",
+    "description": "Recover usable materials and improve effluent treatment to reduce waste-related emissions.",
+    "sectors": [
+      "Steel",
+      "Cement",
+      "Textiles",
+      "Chemicals"
+    ],
+    "source": "waste",
+    "reductionRate": 0.3,
+    "costSavingRate": 0.24,
+    "capex": 32000000,
+    "annualOpex": 950000,
+    "duration": "4–8 months",
+    "complexity": "Medium",
+    "compatibleWith": [
+      "waste-heat",
+      "solar",
+      "motor-efficiency",
+      "boiler",
+      "clinker",
+      "material-substitution"
+    ],
+    "addressableRef": 2982,
+    "steps": [
+      "Characterise waste streams",
+      "Assess recovery opportunities",
+      "Install segregation and treatment",
+      "Track recovery and disposal volumes"
+    ]
+  },
+  {
+    "id": "material-substitution",
+    "name": "Recycled feedstock substitution",
+    "category": "Circularity",
+    "description": "Replace a share of virgin feedstock with recovered or secondary material from a declared stream.",
+    "sectors": [
+      "Steel",
+      "Cement",
+      "Textiles",
+      "Chemicals"
+    ],
+    "source": "process",
+    "reductionRate": 0.11,
+    "costSavingRate": 0.09,
+    "capex": 24000000,
+    "annualOpex": 700000,
+    "duration": "3–6 months",
+    "complexity": "Medium",
+    "compatibleWith": [
+      "waste-heat",
+      "solar",
+      "motor-efficiency",
+      "boiler",
+      "waste-recovery"
+    ],
+    "requiresMaterial": true,
+    "addressableRef": 11044.55,
+    "steps": [
+      "Map incoming material streams and recovered fractions",
+      "Qualify a secondary source against product specification",
+      "Trial a substitution rate on one line",
+      "Track substituted tonnage and avoided virgin purchase"
+    ]
+  }
+]
