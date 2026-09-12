@@ -1,0 +1,15 @@
+# Never bake local state, secrets, dependencies or build output into an image.
+backend/data/
+backend/.env
+frontend/.env
+frontend/node_modules/
+frontend/dist/
+.venv/
+.git/
+.github/
+.claude/
+**/__pycache__/
+**/.pytest_cache/
+docs/
+*.md
+!README.md
