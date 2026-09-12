@@ -183,7 +183,7 @@ scikit-learn · Vitest · pytest · GitHub Actions
 
 | | |
 | --- | --- |
-| Frontend tests | 65 (calculations, commands, map layers, analysis narrative, catalogue parity, Copilot tool contracts) |
+| Frontend tests | 70 (calculations, commands, map layers, analysis narrative, catalogue parity, Copilot history and figure checks) |
 | Model tests | 7 (behaviour, provenance, the claim above) |
 | API contract tests | 21 (state on MongoDB, settings, catalogue, alerts, analysis, extraction incl. OCR, model — against a live service) |
 | Accessibility | 0 WCAG 2.1 A/AA violations across all 11 routes (axe-core) |

@@ -76,14 +76,33 @@ export const CommandBar = ({
         ],
         toolChoice: 'none',
         temperature: 0,
-        maxTokens: 120,
+        // Reasoning models spend tokens before the JSON appears; a tight cap returned nothing at all.
+        maxTokens: 400,
       });
-      const result = resultFromIntent(extractIntent(reply.text), factories);
-      if (result.type === 'unknown')
+      const intent = extractIntent(reply.text);
+      // Visible in DevTools so a misread request can be diagnosed without guessing.
+      console.debug(
+        '[navigate] model reply',
+        JSON.stringify(reply.text),
+        'finish',
+        reply.finish,
+        'usage',
+        reply.usage,
+        '→ intent',
+        intent,
+      );
+      const result = resultFromIntent(intent, factories);
+      if (result.type === 'unknown') {
+        if (!reply.text.trim() || reply.finish === 'length') {
+          // The model ran out of budget or returned nothing: the Copilot has tools and a larger
+          // budget, so the request is handed on rather than dropped.
+          apply({ type: 'copilot', question: input.trim() });
+          return;
+        }
         setMessage(
           'That does not map to anything on the map or the screens. Name a factory, sector, layer or page, or ask a question for the Copilot.',
         );
-      else apply(result);
+      } else apply(result);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'The model could not be reached.');
     } finally {

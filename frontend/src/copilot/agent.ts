@@ -60,10 +60,11 @@ export function capHistory(messages: ChatMessage[]): ChatMessage[] {
   const system = messages.filter(m => m.role === 'system');
   const rest = messages.filter(m => m.role !== 'system');
   if (rest.length <= HISTORY_LIMIT) return messages;
+  // Cut only at a user turn. Cutting anywhere inside an assistant-with-tool_calls / tool-results
+  // group leaves results whose call was never declared, and strict providers (Cohere, for one)
+  // reject the whole request: "tool call id … not found in previous tool calls".
   let start = rest.length - HISTORY_LIMIT;
-  while (start > 0 && rest[start].role === 'tool') start--; // never start on an orphan result
-  const head = rest[start];
-  if (head?.role === 'assistant' && head.tool_calls?.length) start++;
+  while (start > 0 && rest[start].role !== 'user') start--;
   return [...system, ...rest.slice(start)];
 }
 
@@ -72,6 +73,7 @@ export async function runAgent(history: ChatMessage[], deps: AgentDeps): Promise
   const toolRuns: ToolRun[] = [];
   const defs = deps.toolsEnabled === false ? undefined : toolDefs;
   let text = '';
+  let nudged = false;
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
     const budgetSpent = iteration === MAX_ITERATIONS - 1;
@@ -95,8 +97,24 @@ export async function runAgent(history: ChatMessage[], deps: AgentDeps): Promise
 
     if (result.text) text = result.text;
     if (!result.toolCalls.length) {
-      messages.push({ role: 'assistant', content: result.text });
-      return { text: result.text, messages: sanitiseHistory(messages), toolRuns, stopped: false };
+      // Reasoning models can spend the whole budget before writing anything: evidence with no
+      // answer. Ask once, plainly, for the prose; if that also comes back empty, say so rather than
+      // render a blank bubble.
+      if (!result.text.trim() && toolRuns.length && !nudged) {
+        nudged = true;
+        messages.push({
+          role: 'user',
+          content: 'Write your answer now, in prose, using only the tool results above.',
+        });
+        continue;
+      }
+      const finalText =
+        result.text.trim() ||
+        (toolRuns.length
+          ? 'The model returned no text after running its tools. The evidence below is complete; ask again or choose another model in Settings.'
+          : result.text);
+      messages.push({ role: 'assistant', content: finalText });
+      return { text: finalText, messages: sanitiseHistory(messages), toolRuns, stopped: false };
     }
 
     // The assistant turn must be appended verbatim, tool_calls included: OpenRouter rejects a tool
@@ -148,4 +166,48 @@ export async function runAgent(history: ChatMessage[], deps: AgentDeps): Promise
   }
 
   return { text, messages: sanitiseHistory(messages), toolRuns, stopped: false };
+}
+
+/**
+ * Numbers in an answer that no tool produced. The arithmetic rule says the model may not derive a
+ * figure itself; this is the structural check behind that sentence. Numbers are compared after
+ * normalisation (grouping stripped, ±0.6% tolerance so 9.06 months and 9.1 months agree), and a
+ * number is considered attributed if it appears in any tool result, any tool argument, or the
+ * user's own question. Years and small counts are ignored: "3 factories" is not arithmetic.
+ */
+export function unattributedFigures(text: string, runs: ToolRun[], question = ''): string[] {
+  const allowed: number[] = [];
+  const harvest = (v: unknown) => {
+    for (const m of JSON.stringify(v ?? '').matchAll(/-?\d[\d,]*(?:\.\d+)?/g)) {
+      const n = Number(m[0].replace(/,/g, ''));
+      if (Number.isFinite(n)) allowed.push(n);
+    }
+  };
+  for (const r of runs) {
+    harvest(r.args);
+    if (r.ok) harvest(r.data);
+  }
+  harvest(question);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const m of text.matchAll(
+    /(~?₹?)(\d[\d,]*(?:\.\d+)?)(\s?(?:%|cr|L|lakh|crore|tCO2e|tCO₂e|months?|years?))?/gi,
+  )) {
+    const raw = m[2].replace(/[,.]+$/, ''); // "₹191,941,271," mid-sentence
+    const n = Number(raw.replace(/,/g, ''));
+    if (!Number.isFinite(n)) continue;
+    if (raw.replace(/[,.]/g, '').length < 3 && !m[3]?.includes('%')) continue; // "3 factories", "2 steps"
+    if (/^(19|20)\d\d$/.test(raw) && !m[3]) continue; // a year
+    // Percentages: 40% is attributed if a tool saw 40 or 0.4; a ratio like 112% almost never is.
+    const candidates = m[3]?.includes('%') ? [n, n / 100] : [n, n * 1e7, n * 1e5]; // cr and lakh spellings
+    const ok = candidates.some(c =>
+      allowed.some(a => a === c || (c !== 0 && Math.abs(a - c) / Math.abs(c) <= 0.006)),
+    );
+    const label = `${m[1] ?? ''}${raw}${m[3] ?? ''}`.trim();
+    if (!ok && !seen.has(label)) {
+      seen.add(label);
+      out.push(label);
+    }
+  }
+  return out;
 }

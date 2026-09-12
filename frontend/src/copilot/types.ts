@@ -58,4 +58,6 @@ export type CopilotTurn = {
   stopped?: boolean;
   error?: string;
   narrated?: boolean;
+  /** Figures in the answer that no tool returned — shown, never hidden. */
+  unattributed?: string[];
 };

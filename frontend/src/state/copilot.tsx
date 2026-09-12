@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ChatMessage, ToolDef } from '../lib/openrouter';
 import type { CopilotTurn, PendingAction, ToolContext, ToolRun } from '../copilot/types';
 import type { Sector } from '../domain/types';
-import { runAgent } from '../copilot/agent';
+import { runAgent, unattributedFigures } from '../copilot/agent';
 import { buildSystemPrompt } from '../copilot/prompt';
 import { useSession } from './SessionContext';
 import { useSettings } from './settings';
@@ -46,6 +46,7 @@ export const CopilotProvider = ({ children }: { children: ReactNode }) => {
   const [toolNow, setToolNow] = useState('');
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [error, setError] = useState('');
+  const allRunsRef = useRef<ToolRun[]>([]);
   const [announcement, setAnnouncement] = useState('');
 
   // Tools called in iteration four must not read a stale ledger.
@@ -148,6 +149,19 @@ export const CopilotProvider = ({ children }: { children: ReactNode }) => {
         });
         wireRef.current = outcome.messages;
         const figures = runs.filter(r => r.ok).length;
+        // Structural check on the arithmetic rule: any number in the answer that no tool returned.
+        const question = [...wire].reverse().find(m => m.role === 'user');
+        // A figure a tool returned earlier in this conversation is attributed too — the model may
+        // legitimately repeat it — so the check runs against every tool result so far.
+        allRunsRef.current = [...allRunsRef.current, ...runs];
+        const unattributed =
+          mode === 'agent' && runs.length
+            ? unattributedFigures(
+                outcome.text,
+                allRunsRef.current,
+                question && 'content' in question ? String(question.content) : '',
+              )
+            : [];
         setTurns(t => [
           ...t,
           {
@@ -157,6 +171,7 @@ export const CopilotProvider = ({ children }: { children: ReactNode }) => {
             toolRuns: runs,
             stopped: outcome.stopped,
             narrated: mode === 'narrated',
+            unattributed,
           },
         ]);
         setAnnouncement(
@@ -168,8 +183,10 @@ export const CopilotProvider = ({ children }: { children: ReactNode }) => {
         const message = e instanceof Error ? e.message : 'The model did not respond.';
         setError(message);
         setAnnouncement(message);
-        // Never leave a malformed history behind for the next turn.
-        wireRef.current = wireRef.current.filter(m => m.role !== 'tool');
+        // The wire history is only replaced when a turn succeeds, so on failure it still holds the
+        // last valid exchange. Stripping tool results here (as this once did) left assistant turns
+        // declaring tool_calls with no results, which every provider rejects — one transient error
+        // then failed every later turn until the conversation was cleared.
       } finally {
         runningRef.current = false;
         setRunning(false);
@@ -203,6 +220,7 @@ export const CopilotProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const clear = useCallback(() => {
+    allRunsRef.current = [];
     abortRef.current?.abort();
     wireRef.current = [];
     pendingRef.current.clear();

@@ -558,3 +558,14 @@
     justify-content: center;
   }
 }
+
+/* A figure the model produced itself, outside the tools. Visible by design. */
+.copilot-unattributed {
+  margin-top: 8px;
+  padding: 6px 9px;
+  border-left: 3px solid #d98b1f;
+  background: #fff7ea;
+  color: #7a4b00;
+  font-size: 10.5px;
+  line-height: 1.5;
+}

@@ -99,6 +99,11 @@ export const Transcript = () => {
                 Model cannot call tools
               </Tag>
             )}
+            {!!turn.unattributed?.length && (
+              <p className="copilot-unattributed" role="note" data-testid={`copilot-unattributed-${turn.id}`}>
+                Not from a tool — treat as the model’s own arithmetic: {turn.unattributed.join(', ')}
+              </p>
+            )}
           </div>
           {turn.role === 'assistant' && !!turn.toolRuns.length && (
             <>

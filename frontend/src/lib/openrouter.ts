@@ -80,7 +80,18 @@ async function errorFromResponse(res: Response): Promise<string> {
   const raw = await res.text().catch(() => '');
   let message = '';
   try {
-    message = JSON.parse(raw)?.error?.message ?? '';
+    // OpenRouter wraps upstream failures as "Provider returned error" and puts the provider's own
+    // text in error.metadata.raw. Surfacing it is the difference between a diagnosable message and
+    // a shrug.
+    const err = JSON.parse(raw)?.error;
+    const raw_ =
+      typeof err?.metadata?.raw === 'string'
+        ? err.metadata.raw
+        : err?.metadata?.raw
+          ? JSON.stringify(err.metadata.raw)
+          : '';
+    const provider = err?.metadata?.provider_name ? ` (${err.metadata.provider_name})` : '';
+    message = err?.message ? `${err.message}${provider}${raw_ ? `: ${raw_.slice(0, 300)}` : ''}` : '';
   } catch {
     /* non-JSON body */
   }
@@ -189,7 +200,8 @@ export async function streamChat(o: StreamChatOptions): Promise<StreamResult> {
       stream: true,
       // Low but non-zero: the same question must produce the same figures twice in a demo.
       temperature: o.temperature ?? 0.1,
-      max_tokens: o.maxTokens ?? 1200,
+      // Reasoning models count their thinking against this; 1200 left some answers empty.
+      max_tokens: o.maxTokens ?? 2400,
       ...(o.tools?.length ? { tools: o.tools, tool_choice: o.toolChoice ?? 'auto' } : {}),
     }),
   });

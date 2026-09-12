@@ -5,6 +5,7 @@ import type { Factory, LedgerEntry, Sector } from '../domain/types';
 import type { ToolContext } from './types';
 import { tools, toolDefs, runTool } from './tools';
 import { sanitiseHistory, capHistory } from './agent';
+import type { ChatMessage } from '../lib/openrouter';
 import { buildSystemPrompt } from './prompt';
 import { parseSseChunk } from '../lib/openrouter';
 
@@ -377,5 +378,38 @@ describe('SSE frame parsing', () => {
   it('skips one malformed frame without losing the next', () => {
     const { frames } = collect(['data: {not json}\n', 'data: {"ok":true}\n']);
     expect(frames).toEqual([{ ok: true }]);
+  });
+});
+
+describe('capHistory never orphans a tool result', () => {
+  it('starts the window on a user turn for every history length', () => {
+    // Build a long history of tool-using turns: user → assistant(tool_calls) → tool → assistant.
+    const turn = (i: number): ChatMessage[] => [
+      { role: 'user', content: `q${i}` },
+      {
+        role: 'assistant',
+        content: '',
+        tool_calls: [{ id: `call_${i}`, type: 'function', function: { name: 'x', arguments: '{}' } }],
+      },
+      { role: 'tool', tool_call_id: `call_${i}`, content: '{}' },
+      { role: 'assistant', content: `a${i}` },
+    ];
+    for (let turns = 1; turns <= 12; turns++) {
+      const history: ChatMessage[] = [
+        { role: 'system', content: 's' },
+        ...Array.from({ length: turns }, (_, i) => turn(i)).flat(),
+      ];
+      const capped = capHistory(history);
+      expect(capped[0].role).toBe('system');
+      expect(capped[1]?.role ?? 'user').toBe('user');
+      capped.forEach((m, idx) => {
+        if (m.role === 'tool') {
+          const declared = capped
+            .slice(0, idx)
+            .some(p => p.role === 'assistant' && p.tool_calls?.some(c => c.id === m.tool_call_id));
+          expect(declared).toBe(true);
+        }
+      });
+    }
   });
 });

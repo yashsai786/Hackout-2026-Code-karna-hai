@@ -6,7 +6,7 @@ What was tested, how, and what it found. Every figure here is reproducible with 
 
 | | Result | Reproduce |
 | --- | --- | --- |
-| Frontend tests | **65 passing** | `cd frontend && npm test` |
+| Frontend tests | **70 passing** | `cd frontend && npm test` |
 | Model tests | **7 passing** | `cd ai && python -m pytest` |
 | API contract tests | **21 passing** against a live service (MongoDB as the store) | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
 | Accessibility | **0 WCAG 2.1 A/AA violations** across 11 routes | axe-core 4.10 in-browser |
@@ -119,6 +119,34 @@ OCR was exercised with a rendered photo of a coal register: the local engine (Ra
 Runtime, no system binary, no network) read four lines at 98% mean confidence and the extractor took
 420 MT and ₹3,444,000 from them. A scanned, image-only PDF is rasterised and read the same way; both
 are contract tests.
+
+## AI surfaces, verified live
+
+With an OpenRouter key connected (`cohere/north-mini-code:free`, a small model chosen to be
+unforgiving), each surface was driven from the UI:
+
+- **Copilot, four tool-using turns in one conversation** — compare two plants, navigate to the worst
+  cement plant, portfolio starting point with cost, then a ledger write with its confirmation step.
+  Every figure quoted was a tool result; the write appeared in MongoDB.
+- **Command bar model fallback** — "the plant that makes alloys" (no rule matches) → the model
+  answered `{"action":"factory","factory":"angul-aluminium"}` and the map selected Angul.
+- **AI analysis → Narrate with the Copilot** — confirmed the page's figures it could check with
+  tools and said plainly which it could not (the peer benchmark and what-ifs have no tool).
+
+Three defects this found, all fixed:
+
+1. `capHistory` could cut the conversation window between an assistant's `tool_calls` and their
+   results; strict providers rejected every later request ("tool call id not found"). It now cuts
+   only at a user turn, and a test sweeps every cut point.
+2. On a provider error the wire history had its tool results stripped but not the calls that
+   declared them, so one transient failure poisoned the rest of the conversation. The last valid
+   history is now left untouched.
+3. A reasoning model spent the command bar's 120-token budget before emitting its JSON and returned
+   nothing. The cap is 400 and an empty reply is handed to the Copilot instead of dead-ending.
+
+And one structural addition: every answer is scanned for numbers no tool returned in the
+conversation; any such figure is shown beneath the answer as the model's own arithmetic. The first
+live run produced exactly one — "~112%" — which is what the check exists to catch.
 
 ## What is still authored rather than measured
 
