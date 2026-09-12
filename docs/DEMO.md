@@ -33,7 +33,7 @@ Land on the **Command Map**. 15 plants, 4.28M tCO₂e, four sectors.
 
 ## 2 · The moment that matters (90 seconds)
 
-**Intake → add a factory.** Enter a coal blast furnace:
+**Factories → + Add factory.** Name it, pick Steel, and you land on its profile. Enter a coal blast furnace:
 
 | Field | Value |
 | --- | --- |

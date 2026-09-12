@@ -135,6 +135,14 @@ export default function FactoryProfile() {
   const baseline = derived.reduce((a, d) => a + d.emissions, 0);
   const covered = derived.filter(d => d.quantity > 0).length;
   const output = num(production);
+  // The model was trained on energy spend = fuel bill + electricity bill (see ai/train.py). When the
+  // operator has not typed a figure, derive it from the rows already on the form rather than sending
+  // zero: a zero spend is outside anything the model has seen and drives the electricity share to 0.
+  const derivedSpend = derived
+    .filter(d => d.source === 'fuel' || d.source === 'electricity')
+    .reduce((a, d) => a + d.cost, 0);
+  const spendForModel = num(spend) || derivedSpend;
+  const canEstimate = Boolean(output) && spendForModel > 0;
   const ready = baseline > 0 && output > 0;
 
   const addMaterial = () =>
@@ -153,7 +161,7 @@ export default function FactoryProfile() {
         primary_fuel: fuel,
         region,
         production_t: output,
-        energy_spend_inr: num(spend),
+        energy_spend_inr: spendForModel,
         plant_age_years: num(age) || 15,
         headcount: num(headcount) || 150,
       });
@@ -335,9 +343,14 @@ export default function FactoryProfile() {
               step="any"
               data-testid="profile-spend"
               value={spend}
+              placeholder={derivedSpend > 0 ? String(Math.round(derivedSpend)) : ''}
               onChange={e => setSpend(e.target.value)}
             />
-            <small>Electricity plus fuel bills</small>
+            <small>
+              {!num(spend) && derivedSpend > 0
+                ? `Using ${money(derivedSpend)} from your fuel and electricity rows`
+                : 'Electricity plus fuel bills'}
+            </small>
           </label>
           <label>
             Plant age (years)
@@ -366,16 +379,18 @@ export default function FactoryProfile() {
           <Btn
             variant="primary"
             data-testid="profile-estimate"
-            disabled={!output || predicting}
+            disabled={!canEstimate || predicting}
             onClick={estimate}
           >
             <Sparkles size={15} />
             {predicting ? 'Estimating…' : 'Estimate my split'}
           </Btn>
         </div>
-        {!output && (
+        {!canEstimate && (
           <p className="muted body-small" data-testid="profile-estimate-hint">
-            Enter annual production above to use the estimator.
+            {!output
+              ? 'Enter annual production above to use the estimator.'
+              : 'Enter your annual energy spend, or a fuel or electricity quantity below, to use the estimator.'}
           </p>
         )}
         {predictError && (

@@ -112,7 +112,11 @@ export default function CommandMap() {
               </span>
               <span className="drawer-stat-label">Factories in view</span>
               <strong data-testid="stat-factories-value">{String(filtered.length).padStart(2, '0')}</strong>
-              <small>{filtered.filter(f => f.baseline !== null).length} with baselines</small>
+              <small>
+                {filtered.filter(f => f.baseline !== null).length} with baselines
+                {filtered.some(f => !f.coordinates) &&
+                  ` · ${filtered.filter(f => !f.coordinates).length} awaiting a location`}
+              </small>
             </div>
             <div className="drawer-stat" data-testid="stat-emissions">
               <span className="drawer-stat-ic">

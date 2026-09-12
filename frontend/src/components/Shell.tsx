@@ -33,7 +33,9 @@ export const Shell = ({ children }: { children: ReactNode }) => {
   const isMap = pathname === '/';
   const current = navItems.find(i => (i.to === '/' ? pathname === '/' : pathname.startsWith(i.to)));
   const label = pathname.startsWith('/factories/')
-    ? 'Factory Detail'
+    ? pathname.endsWith('/profile')
+      ? 'Factory Profile'
+      : 'Factory Detail'
     : pathname.startsWith('/interventions/')
       ? 'Intervention Detail'
       : current?.label || 'Not found';

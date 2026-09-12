@@ -67,7 +67,9 @@ class HotspotRequest(BaseModel):
     primary_fuel: str = Field('Coal', description='Coal | Natural gas | Biomass | Electric')
     region: str = Field('West', description='North | West | South | East | Central')
     production_t: float = Field(..., gt=0, description='Annual saleable output in tonnes')
-    energy_spend_inr: float = Field(..., ge=0, description='Annual energy spend in INR')
+    # Strictly positive: the model was trained on real bills and a zero drives the electricity share
+    # to nothing. Refusing it is more honest than returning a degenerate split.
+    energy_spend_inr: float = Field(..., gt=0, description='Annual energy spend in INR (fuel plus electricity bills)')
     plant_age_years: int = Field(15, ge=0, le=100)
     headcount: int = Field(150, ge=1)
 

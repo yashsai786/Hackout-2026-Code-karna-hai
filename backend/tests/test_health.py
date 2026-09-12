@@ -69,3 +69,13 @@ def test_route_changes_the_prediction(api: requests.Session):
 def test_invalid_input_is_rejected(api: requests.Session):
     bad = {'sector': 'Steel', 'route': 'EAF', 'production_t': 0, 'energy_spend_inr': 1}
     assert api.post(url('/api/v1/hotspots'), json=bad, timeout=20).status_code == 422
+
+
+def test_zero_energy_spend_is_refused_not_guessed():
+    """A zero spend is outside anything the model has seen and produces a degenerate split.
+    The API refuses it with a validation error rather than returning a wrong answer."""
+    body = dict(sector='Steel', route='BF-BOF', primary_fuel='Coal', region='West',
+                production_t=842000, energy_spend_inr=0, plant_age_years=15, headcount=150)
+    res = requests.post(f'{BASE_URL}/api/v1/hotspots', json=body, timeout=10)
+    assert res.status_code == 422
+    assert 'energy_spend_inr' in res.text

@@ -34,7 +34,7 @@ screen after step 2 is derived from what you typed in step 2.
 | | Do this | What it proves |
 | --- | --- | --- |
 | 1 | Land on the **Command Map**. 15 plants, 4.28M tCO₂e in view. | The portfolio view a decision-maker starts from. |
-| 2 | **Intake → Add a factory.** Enter production, four emission sources, material streams. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
+| 2 | **Factories → + Add factory.** You land on its profile. Enter production, four emission sources, material streams. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
 | 3 | **Save baseline.** | The plant now has a validated baseline, hotspots, costs and a confidence grade. |
 | 4 | **Interventions.** Measures are now ranked *for this plant*, each with reduction, operating savings, **return per year** and upfront capex. | Advice derived from this plant's hotspots, not its sector. |
 | 5 | Open one. Move the **adoption slider**. | Reduction, payback and a 36-month cashflow recompute live. |
@@ -74,13 +74,13 @@ Leakpoint replaces the first and most expensive step of that audit: locating the
 
 | The problem statement asks for | Where it lives |
 | --- | --- |
-| Ingest plant data and process parameters | **Intake** and the **factory profile** — production, four emission sources, material streams, coordinates |
+| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** demonstrates the review-and-apply flow on labelled sample extractions; document OCR is roadmap |
 | Detect emission leak points | **Hotspot disaggregation** — the ML model splits the baseline across fuel, electricity, process and waste |
 | Quantify against a baseline | Baseline, intensity per tonne, and a confidence grade derived from data completeness |
 | Recommend circular alternatives | **Interventions** — sector- and material-eligible measures, ranked by this plant's hotspots |
 | Show the economics | Reduction, operating savings, return per year, capex scaled by the six-tenths rule, payback, 36-month cashflow |
 | Track what was decided | **Ledger** — recorded commitments, portfolio totals, CSV export |
-| Surface exposure and value | **Credits** — carbon-credit potential; CBAM exposure for steel and cement exporters |
+| Surface exposure and value | **Credits** — carbon-credit potential per plant. **Factory detail** — CBAM exposure for steel and cement exporters |
 
 Ten routes, all reachable, none decorative: Command Map · Intake · Factories · Factory detail ·
 Factory profile · Interventions · Intervention detail · Credits · Ledger · Alerts.
