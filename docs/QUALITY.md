@@ -8,7 +8,7 @@ What was tested, how, and what it found. Every figure here is reproducible with 
 | --- | --- | --- |
 | Frontend tests | **64 passing** | `cd frontend && npm test` |
 | Model tests | **7 passing** | `cd ai && python -m pytest` |
-| API contract tests | **15 passing** against a live service | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
+| API contract tests | **18 passing** against a live service | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
 | Accessibility | **0 WCAG 2.1 A/AA violations** across 11 routes | axe-core 4.10 in-browser |
 | Types | `strict: true`, clean | `cd frontend && npm run typecheck` |
 | Formatting | Prettier clean | `cd frontend && npm run format:check` |
@@ -113,6 +113,11 @@ the model is doing real work rather than decorating a lookup table.
 Intake was exercised with a real two-row CSV bill: the API summed the "Units consumed (kWh)" column
 to 185,000, read the amount and billing period, showed the evidence for each, and the confirmed
 record was read back from `GET /api/v1/state` — server-side, not from the browser.
+
+OCR was exercised with a rendered photo of a coal register: the local engine (RapidOCR on ONNX
+Runtime, no system binary, no network) read four lines at 98% mean confidence and the extractor took
+420 MT and ₹3,444,000 from them. A scanned, image-only PDF is rasterised and read the same way; both
+are contract tests.
 
 ## Deliberately not done
 

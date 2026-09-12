@@ -160,9 +160,47 @@ def test_extracts_figures_from_a_csv_bill_with_evidence():
     assert out['period'] == '2025-11' and any('Units consumed' in e for e in out['evidence'])
 
 
-def test_extracts_figures_from_text_and_refuses_scans():
+def _bill_png(lines):
+    from PIL import Image, ImageDraw, ImageFont
+    import io
+    img = Image.new('RGB', (900, 90 + 70 * len(lines)), 'white')
+    d = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', 44)
+    except Exception:
+        font = ImageFont.load_default(size=44)
+    for i, line in enumerate(lines):
+        d.text((30, 30 + 70 * i), line, fill='black', font=font)
+    buf = io.BytesIO(); img.save(buf, format='PNG'); return img, buf.getvalue()
+
+
+def test_extracts_figures_from_text():
     txt = b"Coal purchase register, December 2025. Delivered 420 MT to plant. Invoice value Rs 3,444,000 incl. freight."
     out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('coal.txt', txt, 'text/plain')}, timeout=20).json()
     assert out['source_type'] == 'fuel' and out['quantity'] == 420 and out['cost_inr'] == 3444000 and out['period'] == '2025-12'
-    png = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('scan.png', b'\x89PNG\r\n', 'image/png')}, timeout=20)
-    assert png.status_code == 415 and 'OCR' in png.json()['detail']
+
+
+def test_reads_a_photographed_bill_with_local_ocr():
+    """A scan is read on this machine, line by line, with its confidence reported."""
+    _, png = _bill_png(['ELECTRICITY BILL  Dec 2025', 'Units consumed: 185000 kWh', 'Amount payable: Rs 1,387,500'])
+    res = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('bill-photo.png', png, 'image/png')}, timeout=60)
+    assert res.status_code == 200, res.text
+    out = res.json()
+    assert out['method'] == 'ocr' and out['source_type'] == 'electricity'
+    assert out['quantity'] == 185000 and out['cost_inr'] == 1387500 and out['period'] == '2025-12'
+    assert out['ocr_lines'] >= 3 and out['ocr_confidence'] > 0.8
+    assert out['evidence'][0].startswith('OCR:')
+
+
+def test_reads_a_scanned_pdf_by_rasterising_it():
+    import io
+    img, _ = _bill_png(['Waste manifest  Nov 2025', 'Sludge disposed: 85 tonnes', 'Charges INR 119,000'])
+    buf = io.BytesIO(); img.save(buf, format='PDF'); pdf = buf.getvalue()
+    out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('manifest-scan.pdf', pdf, 'application/pdf')}, timeout=60).json()
+    assert out['method'] == 'ocr' and out['source_type'] == 'waste' and out['quantity'] == 85 and out['period'] == '2025-11'
+    assert out['pages'] == 1
+
+
+def test_health_reports_ocr():
+    h = requests.get(f'{BASE_URL}/api/health', timeout=10).json()
+    assert h['ocr'] in ('ready', 'loading')

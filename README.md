@@ -75,7 +75,7 @@ Leakpoint replaces the first and most expensive step of that audit: locating the
 
 | The problem statement asks for | Where it lives |
 | --- | --- |
-| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** reads a bill, register or manifest through the API (CSV, XLSX, text, text-layer PDF) and shows the evidence for every figure; scans are refused rather than guessed |
+| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** reads a bill, register or manifest through the API — CSV, XLSX, text and text-layer PDFs parsed directly, photos and scans read by a **local OCR engine** on the same machine — and shows the evidence and OCR confidence for every figure |
 | Detect emission leak points | **Hotspot disaggregation** — the ML model splits the baseline across fuel, electricity, process and waste. **AI analysis** runs it on one plant: declared vs model split, peer benchmark, fuel-switch what-ifs, and one overall recommendation |
 | Quantify against a baseline | Baseline, intensity per tonne, and a confidence grade derived from data completeness |
 | Recommend circular alternatives | **Interventions** — sector- and material-eligible measures, ranked by this plant's hotspots |
@@ -165,7 +165,7 @@ rather than aspirational. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ```
 ai/          the trained model — train.py, models/, model card, tests
-backend/     FastAPI service that serves it
+backend/     FastAPI — system of record, factor table, document reading (with local OCR), the model's API
 frontend/    React app — src/domain/ holds every calculation
 docs/        architecture, demo script, quality evidence
 run.sh       start everything
@@ -182,7 +182,7 @@ scikit-learn · Vitest · pytest · GitHub Actions
 | --- | --- |
 | Frontend tests | 64 (calculations, commands, map layers, analysis narrative, Copilot tool contracts) |
 | Model tests | 7 (behaviour, provenance, the claim above) |
-| API contract tests | 15 (state, settings, analysis, extraction, model — against a live service) |
+| API contract tests | 18 (state, settings, analysis, extraction incl. OCR, model — against a live service) |
 | Accessibility | 0 WCAG 2.1 A/AA violations across all routes (axe-core) |
 | Types | `strict: true`, no `any` escapes, enforced in CI |
 | Formatting | Prettier, enforced in CI |
@@ -208,8 +208,7 @@ Evidence and method: [`docs/QUALITY.md`](docs/QUALITY.md).
 
 ## Next
 
-OCR for scanned bills and nameplates (tables, text and text-layer PDFs already read) · real BEE PAT
-training data · anomaly detection on month-over-month drift · budget-constrained portfolio optimiser.
+Handwritten registers (printed scans and photos already read) · real BEE PAT training data · anomaly detection on month-over-month drift · budget-constrained portfolio optimiser.
 
 ---
 

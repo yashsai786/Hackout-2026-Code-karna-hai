@@ -8,7 +8,7 @@ Three tiers. Each has one job, and each degrades rather than failing when the on
 
 ```
 frontend/   React 19 + TypeScript. The product. Computes its own arithmetic.
-backend/    FastAPI. System of record, factor table, document extraction, and the model's API.
+backend/    FastAPI. System of record, factor table, document extraction with local OCR, the model's API.
 ai/         scikit-learn. The trained model and the script that produces it.
 ```
 
@@ -118,7 +118,7 @@ except the browser's own calls to OpenRouter with the operator's key.
 | `GET/PUT/DELETE /api/v1/state` | the session document |
 | `GET/PUT/DELETE /api/v1/settings` | OpenRouter key and default model |
 | `GET /api/v1/reference` | emission factors and unit prices |
-| `POST /api/v1/intake/extract` | read a CSV, XLSX, text or text-layer PDF; evidence per figure |
+| `POST /api/v1/intake/extract` | read CSV, XLSX, text, PDF, photo or scan; evidence per figure, OCR confidence when used |
 | `POST /api/v1/hotspots` | the model's emission split |
 | `POST /api/v1/analyse` | split vs declared, peer benchmark, what-ifs |
 | `GET /api/v1/model`, `/api/health` | model card and health |
@@ -130,6 +130,7 @@ except the browser's own calls to OpenRouter with the operator's key.
 | The API | The app computes its own split and labels it as such |
 | The model artefact | `/api/v1/model` reports `loaded: false` with the command to fix it; `run.sh` retrains automatically |
 | No LLM key | Everything works; the Copilot explains what it needs |
+| OCR engine missing | Tables, text and text-layer PDFs still read; a photo returns a 503 naming the package |
 | MongoDB | Reported as not configured; nothing else changes |
 
 Every one of these is a deliberate degradation with a message, not an exception.

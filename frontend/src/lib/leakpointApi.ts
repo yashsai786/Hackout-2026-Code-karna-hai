@@ -147,7 +147,9 @@ export const fetchReference = () =>
 
 export type Extraction = {
   filename: string;
-  method: 'table' | 'pdf-text' | 'text';
+  method: 'table' | 'pdf-text' | 'text' | 'ocr';
+  ocr_confidence?: number;
+  ocr_lines?: number;
   source_type: 'electricity' | 'fuel' | 'waste' | 'unknown';
   unit: string | null;
   quantity: number | null;

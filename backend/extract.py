@@ -5,7 +5,8 @@ row, the line of text) so a reviewer can check it against the document. Supporte
 
   * tables   — CSV, XLSX, XLS: quantity and cost columns found by header keywords, summed by row
   * text     — TXT, and PDFs that carry a text layer: quantities found by unit, amounts by ₹/INR
-  * scans    — images and image-only PDFs are refused with a clear message; there is no OCR here
+  * scans    — images and image-only PDFs go through the local OCR engine (see ocr.py); each line
+               carries its confidence and the extraction reports the mean
 
 Nothing is guessed silently. If a quantity cannot be found the response says so and the operator
 types it, which is still better than a figure invented to fill the box.
@@ -15,6 +16,8 @@ from __future__ import annotations
 import io
 import re
 from typing import Any, Dict, List, Optional
+
+import ocr
 
 QUANTITY_HEADERS = {
     "electricity": ["kwh", "units consumed", "units", "consumption", "energy", "kvah"],
@@ -165,17 +168,32 @@ def extract(data: bytes, filename: str, content_type: str, hint: Optional[str] =
         from pypdf import PdfReader
         reader = PdfReader(io.BytesIO(data))
         text = "\n".join((page.extract_text() or "") for page in reader.pages)
-        if len(text.strip()) < 20:
-            raise ValueError(
-                "This PDF has no text layer (it is a scan). OCR is not part of this service; "
-                "enter the figure from the document, or export the bill as text or CSV."
-            )
-        return {"filename": filename, "pages": len(reader.pages), **_from_text(text, hint, filename, "pdf-text")}
+        if len(text.strip()) >= 20:
+            return {"filename": filename, "pages": len(reader.pages), **_from_text(text, hint, filename, "pdf-text")}
+        # No text layer: a scan. Rasterise and read it locally.
+        return _ocr_result(ocr.read_pdf(data), hint, filename)
     if name.endswith((".txt", ".md", ".log")) or ct.startswith("text/"):
         return {"filename": filename, **_from_text(data.decode("utf-8", errors="replace"), hint, filename, "text")}
-    if ct.startswith("image/") or name.endswith((".png", ".jpg", ".jpeg", ".webp", ".heic")):
-        raise ValueError(
-            "Images are not read: OCR is not part of this service. Enter the figure from the photo, "
-            "or upload the bill as CSV, XLSX, text or a text-based PDF."
-        )
-    raise ValueError("Unsupported file type. Use CSV, XLSX, TXT or a text-based PDF.")
+    if ct.startswith("image/") or name.endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff")):
+        return _ocr_result(ocr.read_image(data), hint, filename)
+    raise ValueError("Unsupported file type. Use CSV, XLSX, TXT, PDF, or a photo or scan (PNG, JPG, WEBP, TIFF).")
+
+
+def _ocr_result(read: Dict[str, Any], hint: Optional[str], filename: str) -> Dict[str, Any]:
+    lines = read.get("lines", [])
+    if not lines:
+        raise ValueError("No readable text was found in the image. Try a sharper, straighter photo with the figures in frame.")
+    out = _from_text(read["text"], hint, filename, "ocr")
+    mean_conf = sum(l["confidence"] for l in lines) / len(lines)
+    out["ocr_confidence"] = round(mean_conf, 3)
+    out["ocr_lines"] = len(lines)
+    out["evidence"].insert(0, f"OCR: {len(lines)} line(s) read locally, mean confidence {mean_conf:.0%}")
+    if mean_conf < 0.8:
+        out["warnings"].append("OCR confidence is below 80% — check the figures against the document.")
+        if out["confidence"] == "High":
+            out["confidence"] = "Medium"
+    if read.get("pages"):
+        out["pages"] = read["pages"]
+    if read.get("truncated"):
+        out["warnings"].append("Only the first pages were read.")
+    return {"filename": filename, **out}

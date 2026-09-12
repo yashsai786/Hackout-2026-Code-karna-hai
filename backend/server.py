@@ -17,6 +17,7 @@ from starlette.middleware.cors import CORSMiddleware
 from store import Store, SettingsStore
 from reference import REFERENCE, REFERENCE_META
 from extract import extract as extract_document
+import ocr
 
 load_dotenv(Path(__file__).parent / '.env')
 
@@ -44,6 +45,7 @@ async def lifespan(app: FastAPI):
             state['db'] = None
     state['store'] = Store(state['db'])
     state['settings'] = SettingsStore(state['db'])
+    ocr.warm()
     yield
     if client is not None:
         client.close()
@@ -65,6 +67,7 @@ class Health(BaseModel):
     model_loaded: bool
     model_training: Optional[str] = None
     database: str
+    ocr: str = 'loading'
 
 
 class HotspotRequest(BaseModel):
@@ -107,6 +110,7 @@ async def health() -> Health:
         model_loaded=bundle is not None,
         model_training=(bundle or {}).get('training'),
         database=database,
+        ocr=ocr.status()['ocr'],
     )
 
 
@@ -385,5 +389,7 @@ async def intake_extract(file: UploadFile = File(...), hint: Optional[str] = For
         return extract_document(data, file.filename or '', file.content_type or '', hint)
     except ValueError as e:
         raise HTTPException(status_code=415, detail=str(e))
+    except RuntimeError as e:  # OCR engine missing on this machine
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:  # a malformed spreadsheet should read as a message, not a stack trace
         raise HTTPException(status_code=422, detail=f'Could not read the file: {e}')

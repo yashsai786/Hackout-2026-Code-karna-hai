@@ -171,9 +171,9 @@ export default function Intake() {
         ))}
       </div>
       <Notice id="intake-disclosure">
-        Documents are read by your Leakpoint API and nothing else: CSV, XLSX, text and text-based PDFs are
-        parsed with the evidence shown for every figure. Scans and photos are refused rather than guessed —
-        OCR is not part of this service.
+        Documents are read by your Leakpoint API and nothing else. CSV, XLSX, text and text-based PDFs are
+        parsed directly; scans and photos are read by a local OCR engine on the same machine. Every figure
+        shows the line or column it came from, with the OCR confidence when one applies.
       </Notice>
       {!factory && (
         <div className="notice warning" role="alert" data-testid="intake-invalid-factory">
@@ -282,14 +282,14 @@ export default function Intake() {
                   <p>
                     {file
                       ? `${fmt(file.size)} bytes · will be read by the API`
-                      : 'CSV, XLSX, TXT or a text-based PDF · up to 20 MB'}
+                      : 'PDF, photo or scan, CSV, XLSX or TXT · up to 20 MB'}
                   </p>
                   <input
                     ref={fileInput}
                     className="sr-only"
                     type="file"
                     aria-label="Choose a source document"
-                    accept=".pdf,.csv,.xlsx,.xls,.txt"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.csv,.xlsx,.xls,.txt"
                     data-testid="intake-file"
                     onChange={e => capture(e.target.files?.[0])}
                   />
@@ -361,7 +361,13 @@ export default function Intake() {
               <div className="processing-state" role="status" data-testid="extraction-processing">
                 <LoaderCircle size={35} className="spin" />
                 <h2>{file ? `Reading ${file.name}…` : 'Preparing sample fields…'}</h2>
-                <p>{file ? 'Parsing the document on the API' : 'Sample flow · no document involved'}</p>
+                <p>
+                  {file
+                    ? /\.(png|jpe?g|webp|tiff?)$/i.test(file.name)
+                      ? 'Reading the image with local OCR'
+                      : 'Parsing the document on the API'
+                    : 'Sample flow · no document involved'}
+                </p>
                 <Btn data-testid="cancel-extraction" onClick={cancel}>
                   Cancel extraction
                 </Btn>
@@ -375,7 +381,7 @@ export default function Intake() {
                     <strong>{file?.name || sample.filename}</strong>
                     <span>
                       {extraction
-                        ? `${sample.name} · read by ${extraction.method === 'table' ? 'table parser' : extraction.method === 'pdf-text' ? 'PDF text layer' : 'text parser'}`
+                        ? `${sample.name} · read by ${extraction.method === 'table' ? 'table parser' : extraction.method === 'pdf-text' ? 'PDF text layer' : extraction.method === 'ocr' ? 'local OCR' : 'text parser'}`
                         : `${sample.name} · sample values`}
                     </span>
                   </div>
