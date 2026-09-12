@@ -7,7 +7,8 @@ screens** — everything after step 2 is derived from what was typed in step 2.
 ./run.sh          # then open http://localhost:3000
 ```
 
-Works offline. No API key needed for anything below except the optional Copilot section.
+Works offline. No API key is needed for anything below except the Copilot section; the Copilot key,
+once pasted in Settings, persists on the API.
 
 ---
 
@@ -66,6 +67,9 @@ Point at the on-screen disclosure:
 
 Declare a material stream. **Save baseline.**
 
+If a judge asks about data entry: open **Intake**, drop a photo of a bill, and the local OCR reads it
+on the machine — each figure with the line it came from and the confidence it was read at.
+
 ## 3 · Why the ranking is now different (45 seconds)
 
 Go to **Interventions**.
@@ -117,10 +121,11 @@ Open it, bottom right. Ask:
 > *"Which plant should I fix first and why?"*
 
 > "It's reading, not calculating. It has no calculator — it calls the same functions these screens
-> call and reports what they return. It cannot invent a number because it never computes one, and
-> every figure it quotes links to the screen that proves it."
+> call and reports what they return. Open the evidence under the answer: every tool it ran, its
+> inputs, the formula, and links to the screens. And if it ever produces a number no tool returned,
+> that number is flagged beneath the answer as its own arithmetic — we do not hide it."
 
-Click a cited figure to jump to its source.
+Expand **Evidence** under the answer and click a screen link.
 
 Then ask it to record something:
 
@@ -128,8 +133,10 @@ Then ask it to record something:
 
 ## 7 · Close (20 seconds)
 
-> "One command to run. Fifty-eight tests. Zero accessibility violations across ten routes. And CI
-> retrains the model on every push — if it ever stops beating the lookup table it replaced, the build
+> "One command to run, from a clean clone, in under a minute. A hundred and five tests, twenty-seven
+> of them recomputing every figure on screen from first principles. Zero accessibility violations
+> across eleven routes — with the key, the model and the API each switched off in turn. And CI
+> retrains the model on every push: if it ever stops beating the lookup table it replaced, the build
 > fails. Our central claim is a test, not a sentence in a README."
 
 ---
@@ -150,7 +157,13 @@ the same held-out plants. Swapping in real data means replacing one function.
 It has no arithmetic. Its tools wrap the domain functions the screens use. Structure, not prompting.
 
 **"What if the backend is down during the demo?"**
-The app computes its own arithmetic and says the estimate is unavailable. Try it — pull the plug.
+Every screen keeps rendering from the cache, the footer says *API unreachable*, and the three things
+that need the API — the model's estimate, the analysis page, document reading — each show one sentence
+naming the fix. Try it — pull the plug.
+
+**"Where does the data live?"**
+MongoDB, through the API. The browser is a cache. Pull `GET /api/v1/state` and you will see exactly
+what the screens show; before anything is saved it serves the seed, so a browser is never the origin.
 
 **"How much of this is real versus hardcoded?"**
 Add a factory that isn't in the seed data and follow it through to a recorded ledger entry. Nothing

@@ -84,7 +84,26 @@ pass as accessible.
 Non-modal panels use the `inert` + `aria-hidden` + `.open` triad, so keyboard focus cannot land in a
 closed drawer.
 
-## Clean-clone verification
+## Clean clone and Docker, run again at the end
+
+The final pass repeated the clone test with everything that had changed — MongoDB, the OCR engine, the
+API-served seed — and ran `docker compose up --build` for the first time. Both surfaced defects:
+
+- The clone chose Python 3.13 (newest first) and `rapidocr-onnxruntime` has no 3.13 wheel, so the whole
+  install failed. `run.sh` now prefers 3.12 and 3.11, and the OCR packages install separately and
+  non-fatally, with the message saying what will and will not work.
+- The Docker web build failed because the typecheck compiles two parity tests that import
+  `backend/*.json`; the files are now copied into the image.
+- There was no `.dockerignore`, so the build context carried local state; and OCR reported unavailable
+  in the slim image for want of `libxcb`, `libgl`, `libglib` and `libgomp`. Both fixed.
+- On an empty volume `GET /api/v1/alerts` computed from nothing while `GET /api/v1/state` served the
+  seed. Both now read the same source.
+
+After the fixes: a fresh clone boots in 50 seconds with the model loaded, MongoDB as the store and OCR
+ready, and every suite passes from inside it; the Docker stack on an empty volume seeds itself, reports
+the model and OCR ready, serves the web app, and reads a photographed bill at 98% confidence.
+
+## Clean-clone verification (first pass)
 
 The failure mode that matters most for a hackathon submission is a repository that does not start.
 Three defects were found and fixed by testing this explicitly:
