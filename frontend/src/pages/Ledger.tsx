@@ -241,7 +241,7 @@ export default function Ledger() {
                       {e.status !== 'Issued' ? (
                         <Btn
                           className="icon-btn"
-                          aria-label={`Advance simulation for ${e.id}`}
+                          aria-label={`Advance status for ${e.id}`}
                           title="Advance status"
                           data-testid={`advance-${e.id}`}
                           onClick={() => setPending(e.id)}
@@ -304,7 +304,7 @@ export default function Ledger() {
                 setPending(null);
               }}
             >
-              Advance simulation
+              Advance status
               <ArrowRight size={16} />
             </Btn>
           </div>
