@@ -73,10 +73,10 @@ Open one. Move the **adoption slider**.
 This is the strongest 45 seconds in the demo. Add a second steel plant — an **EAF** mini-mill,
 electric, 120,000 t, 9 years old — and put the two side by side.
 
-| | Primary hotspot | Top recommendation |
+| Plant | Primary hotspot | Top recommendation |
 | --- | --- | --- |
-| BF-BOF, coal, 28 yrs | thermal fuel ≈ 50% | waste-heat recovery |
-| EAF, electric, 9 yrs | electricity ≈ 78% | on-site solar |
+| BF-BOF, coal, 850,000 t, 28 yrs | thermal fuel, **57%** | waste-heat recovery |
+| EAF, electric, 120,000 t, 9 yrs | electricity, **84%** | on-site solar |
 
 > "Same sector. Before the model, both of these were handed an identical 50/20/27/3 split and an
 > identical list of recommendations. That was the single thing stopping this from being useful, and

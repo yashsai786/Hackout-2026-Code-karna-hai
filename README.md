@@ -41,15 +41,21 @@ screen after step 2 is derived from what you typed in step 2.
 | 6 | **Record to ledger.** | The commitment is tracked, with portfolio totals and a CSV export. |
 | 7 | Open the **Copilot** (bottom right). Ask *"which plant should I fix first and why?"* | Every figure it quotes links to the screen that proves it. |
 
-**The comparison worth showing a judge.** Run step 2 twice — once as a coal **BF-BOF** steelworks,
-once as an electric **EAF** mini-mill. Before this model both were told the same thing. Now:
+**The comparison worth showing a judge.** Run step 2 twice, both as **Steel**:
 
-| | Primary hotspot | Top recommendation |
+| Plant | Primary hotspot the model finds | Which changes the top measure to |
 | --- | --- | --- |
-| Bhilai, BF-BOF, coal, 28 yrs | thermal fuel ≈ 50% | waste-heat recovery |
-| Raipur, EAF, electric, 9 yrs | electricity ≈ 78% | on-site solar |
+| BF-BOF · coal · 850,000 t · 28 yrs | **thermal fuel, 57%** (electricity 9%) | waste-heat recovery |
+| EAF · electric · 120,000 t · 9 yrs | **electricity, 84%** (fuel 1%) | on-site solar |
 
-Same sector. Different plants. Different advice. That is the whole product in one screenshot.
+Same sector. Before this model both plants were handed an identical 50/20/27/3 split and therefore an
+identical ranked list. Check it yourself without the UI:
+
+```bash
+curl -s localhost:8001/api/v1/hotspots -H 'Content-Type: application/json' \
+  -d '{"sector":"Steel","route":"EAF","primary_fuel":"Electric","region":"West",
+       "production_t":120000,"energy_spend_inr":780000000,"plant_age_years":9,"headcount":260}'
+```
 
 Presenting it? The full four-minute script, with the questions judges ask and the answers, is in
 **[`docs/DEMO.md`](docs/DEMO.md)**.
