@@ -75,6 +75,14 @@ def test_model_beats_the_sector_table_it_replaced(bundle):
     assert (1 - m["model_share_mae"] / m["sector_table_share_mae"]) > 0.5
 
 
+def test_it_names_the_right_primary_hotspot_more_often(bundle):
+    """The metric the product actually rests on. A plant acts on its single largest source, so
+    naming the right one matters more than being close on all four."""
+    m = bundle["metrics"]
+    assert m["model_top_hotspot_accuracy"] > m["sector_table_top_hotspot_accuracy"]
+    assert m["model_top_hotspot_accuracy"] > 0.85
+
+
 def test_two_steel_plants_get_materially_different_splits(bundle):
     """The sector table gave these two identical advice. They are not alike."""
     blast_furnace, _ = predict(bundle, **BF_BOF)

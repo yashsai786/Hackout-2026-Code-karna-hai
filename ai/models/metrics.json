@@ -1,13 +1,15 @@
 {
-  "model_share_mae": 0.027993114306482426,
+  "model_share_mae": 0.028032505398216008,
   "sector_table_share_mae": 0.09349732989665528,
-  "improvement_pct": 70.05998530928761,
+  "improvement_pct": 70.0178545962746,
+  "model_top_hotspot_accuracy": 0.90875,
+  "sector_table_top_hotspot_accuracy": 0.78,
   "per_target": {
-    "share_fuel": 0.03566597907781326,
-    "share_electricity": 0.031118498684775685,
-    "share_process": 0.030223771514587792,
-    "share_waste": 0.014964207948752957,
-    "intensity_tco2e_per_t": 0.0981325805411179
+    "share_fuel": 0.03588076913190438,
+    "share_electricity": 0.030865513388307085,
+    "share_process": 0.030319981743444958,
+    "share_waste": 0.015063757329207603,
+    "intensity_tco2e_per_t": 0.0983738535445247
   },
   "n_samples": 8000,
   "training": "synthetic"

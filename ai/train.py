@@ -157,11 +157,21 @@ def main() -> None:
     model_mae = float(np.mean([report[k] for k in share_keys]))
     table_mae = float(np.mean([baseline[k] for k in share_keys]))
 
+    # The metric that decides whether the product gives the right advice. A plant acts on its LARGEST
+    # source of emissions, so being close on every share matters less than naming the right one first.
+    truth = y_test[share_keys].to_numpy()
+    model_top = np.column_stack([models[k].predict(x_test) for k in share_keys]).argmax(1)
+    table_top = np.column_stack([test_sectors.map(sector_means[k]).to_numpy() for k in share_keys]).argmax(1)
+    model_hit = float((model_top == truth.argmax(1)).mean())
+    table_hit = float((table_top == truth.argmax(1)).mean())
+
     OUT.mkdir(exist_ok=True)
     dump({"models": models, "encoder": encoder, "features": FEATURES, "categorical": CATEGORICAL,
           "sources": SOURCES, "targets": targets, "seed": SEED, "n_samples": N,
           "routes": ROUTES, "regions": REGIONS, "training": "synthetic",
-          "metrics": {"model_share_mae": model_mae, "sector_table_share_mae": table_mae, "per_target": report}},
+          "metrics": {"model_share_mae": model_mae, "sector_table_share_mae": table_mae,
+                      "model_top_hotspot_accuracy": model_hit, "sector_table_top_hotspot_accuracy": table_hit,
+                      "per_target": report}},
          OUT / "hotspots.joblib")
 
     print(f"trained on {N} synthetic plants, {len(x_test)} held out\n")
@@ -171,11 +181,15 @@ def main() -> None:
     print(f"\n  mean share MAE      model {model_mae:.4f}   sector-table {table_mae:.4f}")
     print(f"  improvement over the constant sector table: {(1 - model_mae / table_mae) * 100:.1f}%")
     print(f"  intensity MAE       {report['intensity_tco2e_per_t']:.4f} tCO2e/t")
+    print(f"\n  names the correct primary hotspot for")
+    print(f"    {model_hit * 100:.1f}% of held-out plants   (sector table: {table_hit * 100:.1f}%)")
     print(f"\nsaved {OUT / 'hotspots.joblib'}")
     (OUT / "metrics.json").write_text(json.dumps(
         {"model_share_mae": model_mae, "sector_table_share_mae": table_mae,
-         "improvement_pct": (1 - model_mae / table_mae) * 100, "per_target": report,
-         "n_samples": N, "training": "synthetic"}, indent=2))
+         "improvement_pct": (1 - model_mae / table_mae) * 100,
+         "model_top_hotspot_accuracy": model_hit,
+         "sector_table_top_hotspot_accuracy": table_hit,
+         "per_target": report, "n_samples": N, "training": "synthetic"}, indent=2))
 
 
 if __name__ == "__main__":
