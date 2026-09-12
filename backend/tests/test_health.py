@@ -85,15 +85,16 @@ def test_state_round_trips_through_the_api():
     """The web app writes its session through and reads it back on load."""
     doc = {'factories': [{'id': 'probe', 'name': 'Probe', 'sector': 'Steel', 'baseline': 1}], 'ledger': [], 'intake': [], 'inbox': []}
     before = requests.get(f'{BASE_URL}/api/v1/state', timeout=10)
+    was_seed = before.json().get('seeded') is True
     saved = requests.put(f'{BASE_URL}/api/v1/state', json=doc, timeout=10)
     assert saved.status_code == 200 and saved.json()['saved'] is True
     got = requests.get(f'{BASE_URL}/api/v1/state', timeout=10)
     assert got.status_code == 200 and got.json()['factories'][0]['id'] == 'probe'
     # Restore whatever was there so a running demo is not disturbed by the test suite.
-    if before.status_code == 200:
-        requests.put(f'{BASE_URL}/api/v1/state', json=before.json(), timeout=10)
-    else:
+    if was_seed:
         requests.delete(f'{BASE_URL}/api/v1/state', timeout=10)
+    else:
+        requests.put(f'{BASE_URL}/api/v1/state', json={k: v for k, v in before.json().items() if k != 'seeded'}, timeout=10)
 
 
 def test_empty_session_is_refused():
@@ -223,3 +224,9 @@ def test_alerts_are_computed_from_the_data():
     assert 'ranking' in types and all(x['id'] and x['title'] and x['body'] for x in a)
     ranking = next(x for x in a if x['type'] == 'ranking')
     assert 'leads the emissions ranking' in ranking['title']
+
+
+def test_state_is_never_empty():
+    """Before anything is saved the API serves the seed dataset, flagged as such."""
+    s = requests.get(f'{BASE_URL}/api/v1/state', timeout=10).json()
+    assert len(s['factories']) >= 12 and all(k in s for k in ('ledger', 'intake', 'inbox'))

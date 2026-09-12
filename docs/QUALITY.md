@@ -8,7 +8,7 @@ What was tested, how, and what it found. Every figure here is reproducible with 
 | --- | --- | --- |
 | Frontend tests | **70 passing** | `cd frontend && npm test` |
 | Model tests | **7 passing** | `cd ai && python -m pytest` |
-| API contract tests | **21 passing** against a live service (MongoDB as the store) | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
+| API contract tests | **27 passing** against a live service (MongoDB as the store), including an independent recomputation of every displayed figure | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
 | Accessibility | **0 WCAG 2.1 A/AA violations** across 11 routes | axe-core 4.10 in-browser |
 | Types | `strict: true`, clean | `cd frontend && npm run typecheck` |
 | Formatting | Prettier clean | `cd frontend && npm run format:check` |
@@ -119,6 +119,17 @@ OCR was exercised with a rendered photo of a coal register: the local engine (Ra
 Runtime, no system binary, no network) read four lines at 98% mean confidence and the extractor took
 420 MT and ₹3,444,000 from them. A scanned, image-only PDF is rasterised and read the same way; both
 are contract tests.
+
+## Every figure recomputed independently
+
+`backend/tests/test_arithmetic.py` imports nothing from the frontend or the domain layer. It rebuilds
+each number from the raw inputs the API exposes — state, reference table, catalogue — using the
+formulas in `docs/ARCHITECTURE.md`, and compares with what the API reports: the cost model's unit
+consistency for all twelve plants, every ledger record against the scenario formula, the flagship
+Bhilai figures (75,780 tCO₂e, ₹191,941,271 six-tenths capex, 9.06-month payback, 132% return, 53,046
+credit units, ₹1,023,030,000 CBAM exposure), the model's split summing to one, declared-vs-model
+deltas and flags, percentile interpolation, what-if percentages and the computed CBAM alert. Fifty-four
+checks; all agree. It runs in CI against the live service, which now serves the seed dataset itself.
 
 ## AI surfaces, verified live
 

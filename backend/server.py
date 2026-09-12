@@ -181,7 +181,7 @@ async def predict_hotspots(body: HotspotRequest) -> HotspotResponse:
         shares={s: round(float(v), 4) for s, v in zip(SOURCES, shares)},
         hotspots_tco2e_yr={s: round(float(v) * baseline, 1) for s, v in zip(SOURCES, shares)},
         baseline_tco2e_yr=round(baseline, 1),
-        intensity_tco2e_per_t=round(intensity, 4),
+        intensity_tco2e_per_t=round(intensity, 6),
         training=bundle.get('training', 'unknown'),
         model_share_mae=round(metrics.get('model_share_mae', 0), 4),
         sector_table_share_mae=round(metrics.get('sector_table_share_mae', 0), 4),
@@ -200,12 +200,17 @@ class SessionDoc(BaseModel):
     savedAt: Optional[str] = None
 
 
+SEED_PATH = Path(__file__).parent / 'seed.json'
+
+
 @app.get('/api/v1/state')
 async def get_state() -> Dict:
+    """The saved session, or the seed dataset when nothing has been saved yet — so the API is the
+    source of the portfolio from the very first request, and a browser is never the origin of data."""
     doc = await state['store'].load()
     if doc is None:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail='No session has been saved yet.')
+        seed = _json.loads(SEED_PATH.read_text())
+        return {**seed, 'seeded': True}
     return doc
 
 

@@ -1,0 +1,1373 @@
+{
+  "factories": [
+    {
+      "id": "bhilai-steel",
+      "name": "Bhilai Steel Works",
+      "city": "Bhilai",
+      "state": "Chhattisgarh",
+      "sector": "Steel",
+      "coordinates": [
+        21.21,
+        81.38
+      ],
+      "baseline": 842000,
+      "production": 410000,
+      "exportShare": 0.18,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 421000,
+        "electricity": 168400,
+        "process": 227340,
+        "waste": 25260
+      },
+      "costs": {
+        "fuel": 1426528925.619835,
+        "electricity": 1763966480.4469275,
+        "process": 136404000,
+        "waste": 78586200
+      },
+      "wasteTonnes": 56133,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 75780
+        },
+        {
+          "month": "Feb",
+          "emissions": 71570
+        },
+        {
+          "month": "Mar",
+          "emissions": 75780
+        },
+        {
+          "month": "Apr",
+          "emissions": 67360
+        },
+        {
+          "month": "May",
+          "emissions": 71570
+        },
+        {
+          "month": "Jun",
+          "emissions": 67360
+        },
+        {
+          "month": "Jul",
+          "emissions": 67360
+        },
+        {
+          "month": "Aug",
+          "emissions": 63150
+        },
+        {
+          "month": "Sep",
+          "emissions": 67360
+        },
+        {
+          "month": "Oct",
+          "emissions": 71570
+        },
+        {
+          "month": "Nov",
+          "emissions": 71570
+        },
+        {
+          "month": "Dec",
+          "emissions": 71570
+        }
+      ],
+      "materials": [
+        {
+          "name": "Iron ore",
+          "tonnesPerYear": 656000,
+          "costPerTonne": 7400,
+          "recycledShare": 0
+        },
+        {
+          "name": "Coking coal",
+          "tonnesPerYear": 258300,
+          "costPerTonne": 12500,
+          "recycledShare": 0
+        },
+        {
+          "name": "Steel scrap",
+          "tonnesPerYear": 90200,
+          "costPerTonne": 32000,
+          "recycledShare": 1
+        },
+        {
+          "name": "Limestone flux",
+          "tonnesPerYear": 110700,
+          "costPerTonne": 1800,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": true,
+        "monitoring": true,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "angul-aluminium",
+      "name": "Angul Metals & Alloys",
+      "city": "Angul",
+      "state": "Odisha",
+      "sector": "Steel",
+      "coordinates": [
+        20.84,
+        85.1
+      ],
+      "baseline": 685000,
+      "production": 350000,
+      "exportShare": 0.25,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 342500,
+        "electricity": 137000,
+        "process": 184950,
+        "waste": 20550
+      },
+      "costs": {
+        "fuel": 1160537190.0826447,
+        "electricity": 1435055865.9217877,
+        "process": 110970000,
+        "waste": 63933800
+      },
+      "wasteTonnes": 45667,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 61650
+        },
+        {
+          "month": "Feb",
+          "emissions": 58225
+        },
+        {
+          "month": "Mar",
+          "emissions": 61650
+        },
+        {
+          "month": "Apr",
+          "emissions": 54800
+        },
+        {
+          "month": "May",
+          "emissions": 58225
+        },
+        {
+          "month": "Jun",
+          "emissions": 54800
+        },
+        {
+          "month": "Jul",
+          "emissions": 54800
+        },
+        {
+          "month": "Aug",
+          "emissions": 51375
+        },
+        {
+          "month": "Sep",
+          "emissions": 54800
+        },
+        {
+          "month": "Oct",
+          "emissions": 58225
+        },
+        {
+          "month": "Nov",
+          "emissions": 58225
+        },
+        {
+          "month": "Dec",
+          "emissions": 58225
+        }
+      ],
+      "materials": [
+        {
+          "name": "Iron ore",
+          "tonnesPerYear": 560000,
+          "costPerTonne": 7400,
+          "recycledShare": 0
+        },
+        {
+          "name": "Coking coal",
+          "tonnesPerYear": 220500,
+          "costPerTonne": 12500,
+          "recycledShare": 0
+        },
+        {
+          "name": "Steel scrap",
+          "tonnesPerYear": 77000,
+          "costPerTonne": 32000,
+          "recycledShare": 1
+        },
+        {
+          "name": "Limestone flux",
+          "tonnesPerYear": 94500,
+          "costPerTonne": 1800,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": false,
+        "monitoring": false,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "chandrapur-cement",
+      "name": "Chandrapur Cement",
+      "city": "Chandrapur",
+      "state": "Maharashtra",
+      "sector": "Cement",
+      "coordinates": [
+        19.96,
+        79.29
+      ],
+      "baseline": 524000,
+      "production": 690000,
+      "exportShare": 0.12,
+      "confidence": "Medium",
+      "hotspots": {
+        "fuel": 141480,
+        "electricity": 62880,
+        "process": 309160,
+        "waste": 10480
+      },
+      "costs": {
+        "fuel": 479395041.322314,
+        "electricity": 658659217.877095,
+        "process": 185496000,
+        "waste": 32604600
+      },
+      "wasteTonnes": 23289,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 47160
+        },
+        {
+          "month": "Feb",
+          "emissions": 44540
+        },
+        {
+          "month": "Mar",
+          "emissions": 47160
+        },
+        {
+          "month": "Apr",
+          "emissions": 41920
+        },
+        {
+          "month": "May",
+          "emissions": 44540
+        },
+        {
+          "month": "Jun",
+          "emissions": 41920
+        },
+        {
+          "month": "Jul",
+          "emissions": 41920
+        },
+        {
+          "month": "Aug",
+          "emissions": 39300
+        },
+        {
+          "month": "Sep",
+          "emissions": 41920
+        },
+        {
+          "month": "Oct",
+          "emissions": 44540
+        },
+        {
+          "month": "Nov",
+          "emissions": 44540
+        },
+        {
+          "month": "Dec",
+          "emissions": 44540
+        }
+      ],
+      "materials": [
+        {
+          "name": "Limestone",
+          "tonnesPerYear": 862500,
+          "costPerTonne": 900,
+          "recycledShare": 0
+        },
+        {
+          "name": "Clinker",
+          "tonnesPerYear": 496800,
+          "costPerTonne": 4600,
+          "recycledShare": 0
+        },
+        {
+          "name": "Fly ash",
+          "tonnesPerYear": 124200,
+          "costPerTonne": 1200,
+          "recycledShare": 1
+        },
+        {
+          "name": "Gypsum",
+          "tonnesPerYear": 34500,
+          "costPerTonne": 2600,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": false,
+        "additionality": false,
+        "monitoring": true,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "jamshedpur-steel",
+      "name": "Jamshedpur Ironworks",
+      "city": "Jamshedpur",
+      "state": "Jharkhand",
+      "sector": "Steel",
+      "coordinates": [
+        22.8,
+        86.2
+      ],
+      "baseline": 478000,
+      "production": 260000,
+      "exportShare": 0.21,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 239000,
+        "electricity": 95600,
+        "process": 129060,
+        "waste": 14340
+      },
+      "costs": {
+        "fuel": 809834710.7438016,
+        "electricity": 1001396648.0446929,
+        "process": 77436000,
+        "waste": 44613800
+      },
+      "wasteTonnes": 31867,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 43020
+        },
+        {
+          "month": "Feb",
+          "emissions": 40630
+        },
+        {
+          "month": "Mar",
+          "emissions": 43020
+        },
+        {
+          "month": "Apr",
+          "emissions": 38240
+        },
+        {
+          "month": "May",
+          "emissions": 40630
+        },
+        {
+          "month": "Jun",
+          "emissions": 38240
+        },
+        {
+          "month": "Jul",
+          "emissions": 38240
+        },
+        {
+          "month": "Aug",
+          "emissions": 35850
+        },
+        {
+          "month": "Sep",
+          "emissions": 38240
+        },
+        {
+          "month": "Oct",
+          "emissions": 40630
+        },
+        {
+          "month": "Nov",
+          "emissions": 40630
+        },
+        {
+          "month": "Dec",
+          "emissions": 40630
+        }
+      ],
+      "materials": [
+        {
+          "name": "Iron ore",
+          "tonnesPerYear": 416000,
+          "costPerTonne": 7400,
+          "recycledShare": 0
+        },
+        {
+          "name": "Coking coal",
+          "tonnesPerYear": 163800,
+          "costPerTonne": 12500,
+          "recycledShare": 0
+        },
+        {
+          "name": "Steel scrap",
+          "tonnesPerYear": 57200,
+          "costPerTonne": 32000,
+          "recycledShare": 1
+        },
+        {
+          "name": "Limestone flux",
+          "tonnesPerYear": 70200,
+          "costPerTonne": 1800,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": true,
+        "monitoring": false,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "satna-cement",
+      "name": "Satna Cement Works",
+      "city": "Satna",
+      "state": "Madhya Pradesh",
+      "sector": "Cement",
+      "coordinates": [
+        24.58,
+        80.83
+      ],
+      "baseline": 396000,
+      "production": 550000,
+      "exportShare": 0.08,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 106920,
+        "electricity": 47520,
+        "process": 233640,
+        "waste": 7920
+      },
+      "costs": {
+        "fuel": 362290909.0909091,
+        "electricity": 497765363.12849164,
+        "process": 140184000,
+        "waste": 24640000
+      },
+      "wasteTonnes": 17600,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 35640
+        },
+        {
+          "month": "Feb",
+          "emissions": 33660
+        },
+        {
+          "month": "Mar",
+          "emissions": 35640
+        },
+        {
+          "month": "Apr",
+          "emissions": 31680
+        },
+        {
+          "month": "May",
+          "emissions": 33660
+        },
+        {
+          "month": "Jun",
+          "emissions": 31680
+        },
+        {
+          "month": "Jul",
+          "emissions": 31680
+        },
+        {
+          "month": "Aug",
+          "emissions": 29700
+        },
+        {
+          "month": "Sep",
+          "emissions": 31680
+        },
+        {
+          "month": "Oct",
+          "emissions": 33660
+        },
+        {
+          "month": "Nov",
+          "emissions": 33660
+        },
+        {
+          "month": "Dec",
+          "emissions": 33660
+        }
+      ],
+      "materials": [
+        {
+          "name": "Limestone",
+          "tonnesPerYear": 687500,
+          "costPerTonne": 900,
+          "recycledShare": 0
+        },
+        {
+          "name": "Clinker",
+          "tonnesPerYear": 396000,
+          "costPerTonne": 4600,
+          "recycledShare": 0
+        },
+        {
+          "name": "Fly ash",
+          "tonnesPerYear": 99000,
+          "costPerTonne": 1200,
+          "recycledShare": 1
+        },
+        {
+          "name": "Gypsum",
+          "tonnesPerYear": 27500,
+          "costPerTonne": 2600,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": false,
+        "monitoring": true,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "dahej-chemicals",
+      "name": "Dahej Chemicals",
+      "city": "Dahej",
+      "state": "Gujarat",
+      "sector": "Chemicals",
+      "coordinates": [
+        21.7,
+        72.57
+      ],
+      "baseline": 287000,
+      "production": 145000,
+      "exportShare": 0.3,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 100450,
+        "electricity": 86100,
+        "process": 71750,
+        "waste": 28700
+      },
+      "costs": {
+        "fuel": 340367768.5950413,
+        "electricity": 901885474.8603354,
+        "process": 43050000,
+        "waste": 89289200
+      },
+      "wasteTonnes": 63778,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 25830
+        },
+        {
+          "month": "Feb",
+          "emissions": 24395
+        },
+        {
+          "month": "Mar",
+          "emissions": 25830
+        },
+        {
+          "month": "Apr",
+          "emissions": 22960
+        },
+        {
+          "month": "May",
+          "emissions": 24395
+        },
+        {
+          "month": "Jun",
+          "emissions": 22960
+        },
+        {
+          "month": "Jul",
+          "emissions": 22960
+        },
+        {
+          "month": "Aug",
+          "emissions": 21525
+        },
+        {
+          "month": "Sep",
+          "emissions": 22960
+        },
+        {
+          "month": "Oct",
+          "emissions": 24395
+        },
+        {
+          "month": "Nov",
+          "emissions": 24395
+        },
+        {
+          "month": "Dec",
+          "emissions": 24395
+        }
+      ],
+      "materials": [
+        {
+          "name": "Naphtha feedstock",
+          "tonnesPerYear": 166750,
+          "costPerTonne": 62000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Caustic soda",
+          "tonnesPerYear": 30450,
+          "costPerTonne": 38000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Process solvents",
+          "tonnesPerYear": 20300,
+          "costPerTonne": 85000,
+          "recycledShare": 0.3
+        },
+        {
+          "name": "Recovered solvent",
+          "tonnesPerYear": 8700,
+          "costPerTonne": 41000,
+          "recycledShare": 1
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": false,
+        "monitoring": false,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "ballari-steel",
+      "name": "Ballari Steel Co.",
+      "city": "Ballari",
+      "state": "Karnataka",
+      "sector": "Steel",
+      "coordinates": [
+        15.14,
+        76.92
+      ],
+      "baseline": 263000,
+      "production": 150000,
+      "exportShare": 0.15,
+      "confidence": "Medium",
+      "hotspots": {
+        "fuel": 131500,
+        "electricity": 52600,
+        "process": 71010,
+        "waste": 7890
+      },
+      "costs": {
+        "fuel": 445578512.39669424,
+        "electricity": 550977653.631285,
+        "process": 42606000,
+        "waste": 24546200
+      },
+      "wasteTonnes": 17533,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 23670
+        },
+        {
+          "month": "Feb",
+          "emissions": 22355
+        },
+        {
+          "month": "Mar",
+          "emissions": 23670
+        },
+        {
+          "month": "Apr",
+          "emissions": 21040
+        },
+        {
+          "month": "May",
+          "emissions": 22355
+        },
+        {
+          "month": "Jun",
+          "emissions": 21040
+        },
+        {
+          "month": "Jul",
+          "emissions": 21040
+        },
+        {
+          "month": "Aug",
+          "emissions": 19725
+        },
+        {
+          "month": "Sep",
+          "emissions": 21040
+        },
+        {
+          "month": "Oct",
+          "emissions": 22355
+        },
+        {
+          "month": "Nov",
+          "emissions": 22355
+        },
+        {
+          "month": "Dec",
+          "emissions": 22355
+        }
+      ],
+      "materials": [
+        {
+          "name": "Iron ore",
+          "tonnesPerYear": 240000,
+          "costPerTonne": 7400,
+          "recycledShare": 0
+        },
+        {
+          "name": "Coking coal",
+          "tonnesPerYear": 94500,
+          "costPerTonne": 12500,
+          "recycledShare": 0
+        },
+        {
+          "name": "Steel scrap",
+          "tonnesPerYear": 33000,
+          "costPerTonne": 32000,
+          "recycledShare": 1
+        },
+        {
+          "name": "Limestone flux",
+          "tonnesPerYear": 40500,
+          "costPerTonne": 1800,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": false,
+        "additionality": true,
+        "monitoring": true,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "chittorgarh-cement",
+      "name": "Chittor Cement",
+      "city": "Chittorgarh",
+      "state": "Rajasthan",
+      "sector": "Cement",
+      "coordinates": [
+        24.89,
+        74.63
+      ],
+      "baseline": 241000,
+      "production": 340000,
+      "exportShare": 0.1,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 65070,
+        "electricity": 28920,
+        "process": 142190,
+        "waste": 4820
+      },
+      "costs": {
+        "fuel": 220485123.96694216,
+        "electricity": 302932960.8938548,
+        "process": 85314000,
+        "waste": 14995400
+      },
+      "wasteTonnes": 10711,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 21690
+        },
+        {
+          "month": "Feb",
+          "emissions": 20485
+        },
+        {
+          "month": "Mar",
+          "emissions": 21690
+        },
+        {
+          "month": "Apr",
+          "emissions": 19280
+        },
+        {
+          "month": "May",
+          "emissions": 20485
+        },
+        {
+          "month": "Jun",
+          "emissions": 19280
+        },
+        {
+          "month": "Jul",
+          "emissions": 19280
+        },
+        {
+          "month": "Aug",
+          "emissions": 18075
+        },
+        {
+          "month": "Sep",
+          "emissions": 19280
+        },
+        {
+          "month": "Oct",
+          "emissions": 20485
+        },
+        {
+          "month": "Nov",
+          "emissions": 20485
+        },
+        {
+          "month": "Dec",
+          "emissions": 20485
+        }
+      ],
+      "materials": [
+        {
+          "name": "Limestone",
+          "tonnesPerYear": 425000,
+          "costPerTonne": 900,
+          "recycledShare": 0
+        },
+        {
+          "name": "Clinker",
+          "tonnesPerYear": 244800,
+          "costPerTonne": 4600,
+          "recycledShare": 0
+        },
+        {
+          "name": "Fly ash",
+          "tonnesPerYear": 61200,
+          "costPerTonne": 1200,
+          "recycledShare": 1
+        },
+        {
+          "name": "Gypsum",
+          "tonnesPerYear": 17000,
+          "costPerTonne": 2600,
+          "recycledShare": 0
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": false,
+        "monitoring": false,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "vadodara-chemicals",
+      "name": "Vadodara Chemical Works",
+      "city": "Vadodara",
+      "state": "Gujarat",
+      "sector": "Chemicals",
+      "coordinates": [
+        22.31,
+        73.18
+      ],
+      "baseline": 186000,
+      "production": 110000,
+      "exportShare": 0.27,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 65100,
+        "electricity": 55800,
+        "process": 46500,
+        "waste": 18600
+      },
+      "costs": {
+        "fuel": 220586776.85950413,
+        "electricity": 584497206.7039106,
+        "process": 27900000,
+        "waste": 57866200
+      },
+      "wasteTonnes": 41333,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 16740
+        },
+        {
+          "month": "Feb",
+          "emissions": 15810
+        },
+        {
+          "month": "Mar",
+          "emissions": 16740
+        },
+        {
+          "month": "Apr",
+          "emissions": 14880
+        },
+        {
+          "month": "May",
+          "emissions": 15810
+        },
+        {
+          "month": "Jun",
+          "emissions": 14880
+        },
+        {
+          "month": "Jul",
+          "emissions": 14880
+        },
+        {
+          "month": "Aug",
+          "emissions": 13950
+        },
+        {
+          "month": "Sep",
+          "emissions": 14880
+        },
+        {
+          "month": "Oct",
+          "emissions": 15810
+        },
+        {
+          "month": "Nov",
+          "emissions": 15810
+        },
+        {
+          "month": "Dec",
+          "emissions": 15810
+        }
+      ],
+      "materials": [
+        {
+          "name": "Naphtha feedstock",
+          "tonnesPerYear": 126500,
+          "costPerTonne": 62000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Caustic soda",
+          "tonnesPerYear": 23100,
+          "costPerTonne": 38000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Process solvents",
+          "tonnesPerYear": 15400,
+          "costPerTonne": 85000,
+          "recycledShare": 0.3
+        },
+        {
+          "name": "Recovered solvent",
+          "tonnesPerYear": 6600,
+          "costPerTonne": 41000,
+          "recycledShare": 1
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": false,
+        "monitoring": true,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "surat-textiles",
+      "name": "Surat Textile Mills",
+      "city": "Surat",
+      "state": "Gujarat",
+      "sector": "Textiles",
+      "coordinates": [
+        21.17,
+        72.83
+      ],
+      "baseline": 94000,
+      "production": 38000,
+      "exportShare": 0.35,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 39480,
+        "electricity": 40420,
+        "process": 4700,
+        "waste": 9400
+      },
+      "costs": {
+        "fuel": 133775206.61157025,
+        "electricity": 423393854.74860334,
+        "process": 2820000,
+        "waste": 29244600
+      },
+      "wasteTonnes": 20889,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 8460
+        },
+        {
+          "month": "Feb",
+          "emissions": 7990
+        },
+        {
+          "month": "Mar",
+          "emissions": 8460
+        },
+        {
+          "month": "Apr",
+          "emissions": 7520
+        },
+        {
+          "month": "May",
+          "emissions": 7990
+        },
+        {
+          "month": "Jun",
+          "emissions": 7520
+        },
+        {
+          "month": "Jul",
+          "emissions": 7520
+        },
+        {
+          "month": "Aug",
+          "emissions": 7050
+        },
+        {
+          "month": "Sep",
+          "emissions": 7520
+        },
+        {
+          "month": "Oct",
+          "emissions": 7990
+        },
+        {
+          "month": "Nov",
+          "emissions": 7990
+        },
+        {
+          "month": "Dec",
+          "emissions": 7990
+        }
+      ],
+      "materials": [
+        {
+          "name": "Raw cotton",
+          "tonnesPerYear": 42560,
+          "costPerTonne": 145000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Polyester staple",
+          "tonnesPerYear": 12920,
+          "costPerTonne": 98000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Dyes and chemicals",
+          "tonnesPerYear": 3420,
+          "costPerTonne": 210000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Recovered fibre",
+          "tonnesPerYear": 3040,
+          "costPerTonne": 46000,
+          "recycledShare": 1
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": true,
+        "monitoring": false,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "ludhiana-textiles",
+      "name": "Ludhiana Spinning Co.",
+      "city": "Ludhiana",
+      "state": "Punjab",
+      "sector": "Textiles",
+      "coordinates": [
+        30.9,
+        75.86
+      ],
+      "baseline": 72000,
+      "production": 31000,
+      "exportShare": 0.2,
+      "confidence": "Medium",
+      "hotspots": {
+        "fuel": 30240,
+        "electricity": 30960,
+        "process": 3600,
+        "waste": 7200
+      },
+      "costs": {
+        "fuel": 102466115.70247935,
+        "electricity": 324301675.9776536,
+        "process": 2160000,
+        "waste": 22400000
+      },
+      "wasteTonnes": 16000,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 6480
+        },
+        {
+          "month": "Feb",
+          "emissions": 6120
+        },
+        {
+          "month": "Mar",
+          "emissions": 6480
+        },
+        {
+          "month": "Apr",
+          "emissions": 5760
+        },
+        {
+          "month": "May",
+          "emissions": 6120
+        },
+        {
+          "month": "Jun",
+          "emissions": 5760
+        },
+        {
+          "month": "Jul",
+          "emissions": 5760
+        },
+        {
+          "month": "Aug",
+          "emissions": 5400
+        },
+        {
+          "month": "Sep",
+          "emissions": 5760
+        },
+        {
+          "month": "Oct",
+          "emissions": 6120
+        },
+        {
+          "month": "Nov",
+          "emissions": 6120
+        },
+        {
+          "month": "Dec",
+          "emissions": 6120
+        }
+      ],
+      "materials": [
+        {
+          "name": "Raw cotton",
+          "tonnesPerYear": 34720,
+          "costPerTonne": 145000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Polyester staple",
+          "tonnesPerYear": 10540,
+          "costPerTonne": 98000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Dyes and chemicals",
+          "tonnesPerYear": 2790,
+          "costPerTonne": 210000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Recovered fibre",
+          "tonnesPerYear": 2480,
+          "costPerTonne": 46000,
+          "recycledShare": 1
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": false,
+        "additionality": false,
+        "monitoring": true,
+        "independentReview": false
+      }
+    },
+    {
+      "id": "tiruppur-textiles",
+      "name": "Tiruppur Textiles",
+      "city": "Tiruppur",
+      "state": "Tamil Nadu",
+      "sector": "Textiles",
+      "coordinates": [
+        11.11,
+        77.34
+      ],
+      "baseline": 58000,
+      "production": 26000,
+      "exportShare": 0.4,
+      "confidence": "High",
+      "hotspots": {
+        "fuel": 24360,
+        "electricity": 24940,
+        "process": 2900,
+        "waste": 5800
+      },
+      "costs": {
+        "fuel": 82542148.76033059,
+        "electricity": 261243016.75977653,
+        "process": 1740000,
+        "waste": 18044600
+      },
+      "wasteTonnes": 12889,
+      "history": [
+        {
+          "month": "Jan",
+          "emissions": 5220
+        },
+        {
+          "month": "Feb",
+          "emissions": 4930
+        },
+        {
+          "month": "Mar",
+          "emissions": 5220
+        },
+        {
+          "month": "Apr",
+          "emissions": 4640
+        },
+        {
+          "month": "May",
+          "emissions": 4930
+        },
+        {
+          "month": "Jun",
+          "emissions": 4640
+        },
+        {
+          "month": "Jul",
+          "emissions": 4640
+        },
+        {
+          "month": "Aug",
+          "emissions": 4350
+        },
+        {
+          "month": "Sep",
+          "emissions": 4640
+        },
+        {
+          "month": "Oct",
+          "emissions": 4930
+        },
+        {
+          "month": "Nov",
+          "emissions": 4930
+        },
+        {
+          "month": "Dec",
+          "emissions": 4930
+        }
+      ],
+      "materials": [
+        {
+          "name": "Raw cotton",
+          "tonnesPerYear": 29120,
+          "costPerTonne": 145000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Polyester staple",
+          "tonnesPerYear": 8840,
+          "costPerTonne": 98000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Dyes and chemicals",
+          "tonnesPerYear": 2340,
+          "costPerTonne": 210000,
+          "recycledShare": 0
+        },
+        {
+          "name": "Recovered fibre",
+          "tonnesPerYear": 2080,
+          "costPerTonne": 46000,
+          "recycledShare": 1
+        }
+      ],
+      "readiness": {
+        "baselineDocumented": true,
+        "additionality": false,
+        "monitoring": false,
+        "independentReview": false
+      }
+    }
+  ],
+  "ledger": [
+    {
+      "id": "LP-2026-001",
+      "factoryId": "bhilai-steel",
+      "interventionIds": [
+        "waste-heat"
+      ],
+      "adoption": 75,
+      "reduction": 56835,
+      "operatingSavings": 190706404.9586777,
+      "capex": 191941271,
+      "realisedSavings": 0,
+      "status": "Estimated",
+      "createdAt": "2026-02-01T09:00:00Z",
+      "simulated": true
+    },
+    {
+      "id": "LP-2026-002",
+      "factoryId": "surat-textiles",
+      "interventionIds": [
+        "solar"
+      ],
+      "adoption": 60,
+      "reduction": 5335.44,
+      "operatingSavings": 49727262.56983241,
+      "capex": 97723534,
+      "realisedSavings": 0,
+      "status": "In review",
+      "createdAt": "2026-02-02T09:00:00Z",
+      "simulated": true
+    },
+    {
+      "id": "LP-2026-003",
+      "factoryId": "satna-cement",
+      "interventionIds": [
+        "motor-efficiency"
+      ],
+      "adoption": 100,
+      "reduction": 5702.4,
+      "operatingSavings": 59331843.575418994,
+      "capex": 25537127,
+      "realisedSavings": 0,
+      "status": "Issued",
+      "createdAt": "2026-02-03T09:00:00Z",
+      "simulated": true
+    }
+  ],
+  "intake": [],
+  "inbox": []
+}

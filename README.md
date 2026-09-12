@@ -185,7 +185,7 @@ scikit-learn · Vitest · pytest · GitHub Actions
 | --- | --- |
 | Frontend tests | 70 (calculations, commands, map layers, analysis narrative, catalogue parity, Copilot history and figure checks) |
 | Model tests | 7 (behaviour, provenance, the claim above) |
-| API contract tests | 21 (state on MongoDB, settings, catalogue, alerts, analysis, extraction incl. OCR, model — against a live service) |
+| API contract tests | 27 (state on MongoDB, settings, catalogue, alerts, analysis, extraction incl. OCR, model — against a live service) |
 | Accessibility | 0 WCAG 2.1 A/AA violations across all 11 routes (axe-core) |
 | Production bundle | `vite preview` of `dist/` verified against the live API — every screen, clean console |
 | Types | `strict: true`, no `any` escapes, enforced in CI |

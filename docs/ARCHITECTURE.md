@@ -118,7 +118,7 @@ except the browser's own calls to OpenRouter with the operator's key.
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET/PUT/DELETE /api/v1/state` | the session document |
+| `GET/PUT/DELETE /api/v1/state` | the session document; before anything is saved it serves `backend/seed.json`, flagged `seeded: true` |
 | `GET/PUT/DELETE /api/v1/settings` | OpenRouter key and default model |
 | `GET /api/v1/reference` | emission factors and unit prices |
 | `GET /api/v1/interventions` | the measure catalogue (`backend/catalogue.json`; the frontend copy is a tested fallback) |

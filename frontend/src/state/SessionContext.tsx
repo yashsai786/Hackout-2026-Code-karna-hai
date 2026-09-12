@@ -4,7 +4,8 @@ import { scenario } from '../domain/calculations';
 import type { Factory, IntakeRecord, LedgerEntry, InboxItem, Sector } from '../domain/types';
 import { fetchState, saveState, deleteState, apiConfigured, fetchAlerts } from '../lib/leakpointApi';
 
-function seedLedger(): LedgerEntry[] {
+/** The three seed ledger records. Exported so backend/seed.json can be proven identical. */
+export function seedLedger(): LedgerEntry[] {
   return [
     { factoryId: 'bhilai-steel', interventionId: 'waste-heat', adoption: 75, status: 'Estimated' as const },
     { factoryId: 'surat-textiles', interventionId: 'solar', adoption: 60, status: 'In review' as const },
