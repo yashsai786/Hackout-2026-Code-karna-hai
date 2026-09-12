@@ -1,5 +1,15 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, ArrowRight, Flame, Zap, Droplets, Cog, ArrowUpRight } from 'lucide-react';
+import {
+  ArrowLeft,
+  MapPin,
+  ArrowRight,
+  Flame,
+  Zap,
+  Droplets,
+  Cog,
+  ArrowUpRight,
+  BookOpen,
+} from 'lucide-react';
 import { useSession } from '../state/SessionContext';
 import {
   sources,
@@ -51,6 +61,10 @@ export default function FactoryDetail() {
               >
                 Edit process & baseline
                 <ArrowUpRight size={16} />
+              </Link>
+              <Link className="app-btn outline" to={`/ledger?factory=${f.id}`} data-testid="factory-ledger">
+                <BookOpen size={16} />
+                Ledger
               </Link>
               {f.coordinates && (
                 <Link className="app-btn outline" to={`/?factory=${f.id}`} data-testid="factory-view-map">

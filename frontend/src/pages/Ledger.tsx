@@ -21,7 +21,11 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../compon
 export default function Ledger() {
   const { ledger, factories, advance } = useSession(),
     [params] = useSearchParams();
-  const [factory, setFactory] = useState('all'),
+  // A factory page links here pre-filtered; an unknown id falls back to the full ledger.
+  const [factory, setFactory] = useState(() => {
+      const wanted = params.get('factory');
+      return wanted && factories.some(f => f.id === wanted) ? wanted : 'all';
+    }),
     [status, setStatus] = useState('all'),
     [search, setSearch] = useState(''),
     [pending, setPending] = useState<string | null>(null),

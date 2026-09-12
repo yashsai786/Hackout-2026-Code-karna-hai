@@ -86,7 +86,8 @@ Leakpoint replaces the first and most expensive step of that audit: locating the
 | Surface exposure and value | **Credits** — carbon-credit potential per plant. **Factory detail** — CBAM exposure for steel and cement exporters |
 
 Eleven routes, all reachable, none decorative: Command Map · Intake · Factories · Factory detail ·
-Factory profile · **AI analysis** · Interventions · Intervention detail · Credits · Ledger · Alerts.
+Factory profile · **AI analysis** · Interventions · Intervention detail · Credits · Ledger (from each
+factory page) · Alerts (from the bell, which carries the unread count).
 
 ---
 

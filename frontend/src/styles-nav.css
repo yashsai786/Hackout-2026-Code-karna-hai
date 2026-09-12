@@ -1617,3 +1617,28 @@ textarea {
 .evidence-card li.warning {
   color: #9a4b00;
 }
+
+/* ---------- Topbar bell carries the unread count; Alerts left the primary nav ---------- */
+.nav-bell {
+  position: relative;
+}
+.nav-bell.active {
+  color: var(--blue);
+}
+.bell-count {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  border: 2px solid #fff;
+}

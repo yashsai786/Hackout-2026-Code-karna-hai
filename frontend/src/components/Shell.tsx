@@ -22,9 +22,9 @@ const navItems = [
   { to: '/analysis', label: 'AI analysis', short: 'AI analysis' },
   { to: '/interventions', label: 'Interventions', short: 'Interventions' },
   { to: '/credits', label: 'Credits', short: 'Credits' },
-  { to: '/ledger', label: 'Ledger', short: 'Ledger' },
-  { to: '/alerts', label: 'Alerts', short: 'Alerts' },
 ];
+// Reached from the bell and from each factory page rather than the primary nav; still titled properly.
+const secondaryTitles: Record<string, string> = { '/ledger': 'Ledger', '/alerts': 'Alerts' };
 const testid = (l: string) => `nav-${l.toLowerCase().replace(/ /g, '-')}`;
 
 export const Shell = ({ children }: { children: ReactNode }) => {
@@ -34,13 +34,15 @@ export const Shell = ({ children }: { children: ReactNode }) => {
   const unread = inbox.filter(m => !m.read).length;
   const isMap = pathname === '/';
   const current = navItems.find(i => (i.to === '/' ? pathname === '/' : pathname.startsWith(i.to)));
-  const label = pathname.startsWith('/factories/')
-    ? pathname.endsWith('/profile')
-      ? 'Factory Profile'
-      : 'Factory Detail'
-    : pathname.startsWith('/interventions/')
-      ? 'Intervention Detail'
-      : current?.label || 'Not found';
+  const label = secondaryTitles[Object.keys(secondaryTitles).find(k => pathname.startsWith(k)) ?? '']
+    ? secondaryTitles[Object.keys(secondaryTitles).find(k => pathname.startsWith(k))!]
+    : pathname.startsWith('/factories/')
+      ? pathname.endsWith('/profile')
+        ? 'Factory Profile'
+        : 'Factory Detail'
+      : pathname.startsWith('/interventions/')
+        ? 'Intervention Detail'
+        : current?.label || 'Not found';
   useEffect(() => {
     document.title = `Leakpoint — ${label}`;
     window.scrollTo(0, 0);
@@ -94,9 +96,19 @@ export const Shell = ({ children }: { children: ReactNode }) => {
             <Globe2 size={15} />
             India
           </span>
-          <Link to="/alerts" className="nav-bell" aria-label="Open alerts" data-testid="topbar-alerts">
+          <Link
+            to="/alerts"
+            className={`nav-bell ${pathname.startsWith('/alerts') ? 'active' : ''}`}
+            aria-label={unread > 0 ? `Open alerts, ${unread} unread` : 'Open alerts'}
+            aria-current={pathname.startsWith('/alerts') ? 'page' : undefined}
+            data-testid="topbar-alerts"
+          >
             <Bell size={18} />
-            {unread > 0 && <i />}
+            {unread > 0 && (
+              <span className="bell-count" data-testid="unread-count" aria-hidden="true">
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
           </Link>
           <SettingsDialog />
           <div className="avatar" aria-label="Demo workspace user" data-testid="user-avatar">

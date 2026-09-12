@@ -104,7 +104,8 @@ Open **AI analysis** for the blast furnace.
 
 ## 5 · Committing to it (20 seconds)
 
-**Record to ledger** → **Ledger**.
+**Record to ledger**, then open the **Ledger** button on the factory page (the ledger and alerts are
+reached from where they belong — the plant, and the bell in the top bar — not from the primary nav).
 
 > "Portfolio totals, CSV export, and every row marked as an estimate not verified by any registry.
 > We'd rather be trusted than impressive."
