@@ -9,6 +9,9 @@ import {
   type CommandResult,
 } from '../domain/commands';
 import { useSettings } from '../state/settings';
+import { useChrome } from '../state/ui';
+import { useCopilot } from '../state/copilot';
+import type { GeoLayerId } from '../domain/geo';
 import type { Factory, Sector } from '../domain/types';
 import { Btn } from './Primitives';
 export const CommandBar = ({
@@ -17,12 +20,18 @@ export const CommandBar = ({
   filter,
   rank,
   reset,
+  filterState,
+  setLayers,
+  mapControl,
 }: {
   factories: Factory[];
   select: (id: string) => void;
   filter: (sector: Sector) => void;
   rank: (v: 'total' | 'intensity') => void;
   reset: () => void;
+  filterState: (state: string) => void;
+  setLayers: (layers: GeoLayerId[], mode: 'set' | 'add' | 'remove' | 'clear') => void;
+  mapControl: (action: 'zoom-in' | 'zoom-out' | 'fit') => void;
 }) => {
   const [text, setText] = useState(''),
     [message, setMessage] = useState(''),
@@ -31,6 +40,8 @@ export const CommandBar = ({
   const recognition = useRef<any>(null),
     navigate = useNavigate();
   const { connected, runChat } = useSettings();
+  const { setPanelOpen, setCopilotOpen } = useChrome();
+  const copilot = useCopilot();
   const [thinking, setThinking] = useState(false);
   useEffect(
     () => () => {
@@ -51,7 +62,7 @@ export const CommandBar = ({
     if (ruled.type !== 'unknown') return apply(ruled);
     if (!connected) {
       setMessage(
-        'No rule matched. Connect an OpenRouter key in Settings to ask in plain language, or try “Find Bhilai”, “Show cement factories”, “Highest intensity”, or “Go to ledger”.',
+        'No rule matched. Connect an OpenRouter key in Settings to say it any way you like, or try “Find Bhilai”, “Show solar and wind”, “Highest intensity”, or “Go to ledger”.',
       );
       return;
     }
@@ -70,7 +81,7 @@ export const CommandBar = ({
       const result = resultFromIntent(extractIntent(reply.text), factories);
       if (result.type === 'unknown')
         setMessage(
-          'That does not map to a screen. Ask the Copilot for analysis, or name a factory, sector or page.',
+          'That does not map to anything on the map or the screens. Name a factory, sector, layer or page, or ask a question for the Copilot.',
         );
       else apply(result);
     } catch (e) {
@@ -90,9 +101,34 @@ export const CommandBar = ({
     } else if (result.type === 'rank') {
       rank(result.rank);
       setMessage(`Ranked by ${result.rank === 'total' ? 'annual emissions' : 'emissions intensity'}.`);
+    } else if (result.type === 'state') {
+      filterState(result.state);
+      setMessage(`Showing factories in ${result.state}.`);
+    } else if (result.type === 'layers') {
+      setLayers(result.layers, result.mode);
+      setMessage(
+        result.mode === 'clear'
+          ? 'Context layers cleared.'
+          : `${result.mode === 'remove' ? 'Hid' : 'Showing'} ${result.layers.join(', ')} layer${result.layers.length > 1 ? 's' : ''}.`,
+      );
+    } else if (result.type === 'panel') {
+      setPanelOpen(result.open);
+      setMessage(result.open ? 'Panel shown.' : 'Panel hidden.');
+    } else if (result.type === 'map') {
+      mapControl(result.action);
+      setMessage(
+        result.action === 'fit'
+          ? 'Fitted to every plant.'
+          : `Zoomed ${result.action === 'zoom-in' ? 'in' : 'out'}.`,
+      );
+    } else if (result.type === 'copilot') {
+      setCopilotOpen(true);
+      copilot.send(result.question);
+      setMessage('Handed to the Copilot — it answers from this session’s figures.');
     } else if (result.type === 'clear') {
       reset();
-      setMessage('All factory filters cleared.');
+      setLayers([], 'clear');
+      setMessage('Filters and layers cleared.');
     } else if (result.type === 'ambiguous') {
       setChoices(result.ids);
       setMessage('More than one match. Choose a factory:');
@@ -158,7 +194,7 @@ export const CommandBar = ({
           data-testid="command-input"
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="Find a factory, explore a sector, or go somewhere…"
+          placeholder="Say what you want: “solar at Bhilai at 60%”, “show wind layer”, “which plant first?”"
           autoComplete="off"
         />
         <span className="command-rule" data-testid="command-rule-label">
@@ -186,7 +222,12 @@ export const CommandBar = ({
       </form>
       <div className="command-suggestions">
         <span>QUICK COMMANDS</span>
-        {['Highest emissions', 'Show cement factories', 'Go to ledger'].map((s, i) => (
+        {[
+          'Highest emissions',
+          'Show solar and wind',
+          'Waste heat at Bhilai at 60%',
+          'Which plant first?',
+        ].map((s, i) => (
           <button
             key={s}
             data-testid={`quick-command-${i}`}

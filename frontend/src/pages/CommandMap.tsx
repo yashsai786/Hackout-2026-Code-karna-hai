@@ -27,6 +27,10 @@ export default function CommandMap() {
     [layers, setLayers] = useState<GeoLayerId[]>([]);
   const toggleLayer = (l: GeoLayerId) =>
     setLayers(cur => (cur.includes(l) ? cur.filter(x => x !== l) : [...cur, l]));
+  // A counter, not a boolean: the same instruction twice in a row must fire twice.
+  const [mapCommand, setMapCommand] = useState<{ n: number; action: 'zoom-in' | 'zoom-out' | 'fit' } | null>(
+    null,
+  );
   const id = params.get('factory'),
     selected = factories.find(f => f.id === id);
   // Sector and ranking are also honoured from the query string so the Copilot (and any deep
@@ -86,7 +90,14 @@ export default function CommandMap() {
 
   return (
     <div className="map-page" data-testid="command-map">
-      <FactoryMap full factories={filtered} selected={id} onSelect={openWith} layers={layers} />
+      <FactoryMap
+        full
+        factories={filtered}
+        selected={id}
+        onSelect={openWith}
+        layers={layers}
+        command={mapCommand}
+      />
       <aside
         className={`map-drawer ${panelOpen ? 'open' : ''}`}
         data-testid="map-panel"
@@ -178,6 +189,24 @@ export default function CommandMap() {
                 reset();
               }}
               reset={reset}
+              filterState={st => {
+                setState(st);
+                setSector('all');
+                setParams({});
+                setPanelOpen(true);
+              }}
+              setLayers={(ls, mode) =>
+                setLayers(cur =>
+                  mode === 'clear'
+                    ? []
+                    : mode === 'set'
+                      ? ls
+                      : mode === 'add'
+                        ? [...new Set([...cur, ...ls])]
+                        : cur.filter(l => !ls.includes(l)),
+                )
+              }
+              mapControl={action => setMapCommand(c => ({ n: (c?.n ?? 0) + 1, action }))}
             />
           </div>
 

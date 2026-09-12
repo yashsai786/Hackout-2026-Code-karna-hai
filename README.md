@@ -40,6 +40,7 @@ screen after step 2 is derived from what you typed in step 2.
 | 5 | Open one. Move the **adoption slider**. | Reduction, payback and a 36-month cashflow recompute live. |
 | 6 | **Record to ledger.** | The commitment is tracked, with portfolio totals and a CSV export. |
 | 7 | Open the **Copilot** (bottom right). Ask *"which plant should I fix first and why?"* | Every figure it quotes links to the screen that proves it. |
+| 8 | Back on the map, type into **Navigate**: *"show solar and wind"*, *"waste heat at Bhilai at 60%"*, *"hide the panel"*, *"which plant first?"* | One bar drives the whole system — deterministic rules first, your OpenRouter model for anything they cannot place, and analytical questions handed straight to the Copilot. |
 
 **The comparison worth showing a judge.** Run step 2 twice, both as **Steel**:
 
@@ -115,6 +116,7 @@ scored on the same held-out plants. Full disclosure, feature list and limitation
 
 This is the part that separates Leakpoint from a chatbot with a spreadsheet behind it.
 
+- **One bar controls everything, and it is constrained.** The Navigate bar interprets plain language with offline rules first — select and fly to a plant, filter by sector or state, rank, switch context layers, zoom, open a scenario at a given adoption. Only what the rules cannot place goes to your model, which may choose solely from the factory ids, sectors, layers and routes it is handed; anything else is discarded. Analytical questions are routed to the Copilot rather than dead-ending.
 - **The Copilot cannot do arithmetic.** It has no calculator. It calls the same domain functions the
   screens call, and reports what they return. It is incapable of inventing a figure, because it never
   computes one.

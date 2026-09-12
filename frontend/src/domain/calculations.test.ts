@@ -221,9 +221,8 @@ describe('portfolio, parser, csv, extraction, digest', () => {
   });
 
   it('parses ambiguous Gujarat and unknown commands', () => {
-    const ambiguous = parseCommand('Gujarat', factories);
-    expect(ambiguous.type).toBe('ambiguous');
-    if (ambiguous.type === 'ambiguous') expect(ambiguous.ids.length).toBeGreaterThan(1);
+    // A bare state name now filters by state rather than listing every plant in it.
+    expect(parseCommand('Gujarat', factories)).toEqual({ type: 'state', state: 'Gujarat' });
     expect(parseCommand('teleport to moon', factories)).toEqual({ type: 'unknown' });
   });
 

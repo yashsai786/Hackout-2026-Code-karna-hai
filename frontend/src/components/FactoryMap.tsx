@@ -13,8 +13,31 @@ const colors: Record<string, string> = {
   Textiles: '#bb861b',
   Chemicals: '#dd7150',
 };
-const Fit = ({ factories }: { factories: Factory[]; selected: string | null }) => {
+export type MapCommand = { n: number; action: 'zoom-in' | 'zoom-out' | 'fit' } | null;
+const Fit = ({
+  factories,
+  selected,
+  command,
+}: {
+  factories: Factory[];
+  selected: string | null;
+  command?: MapCommand;
+}) => {
   const map = useMap();
+  // "Take me to Bhilai" should move the map, not only highlight a dot.
+  useEffect(() => {
+    const f = factories.find(x => x.id === selected);
+    if (f?.coordinates) map.flyTo(f.coordinates, Math.max(map.getZoom(), 7), { duration: 0.6 });
+  }, [map, selected, factories]);
+  useEffect(() => {
+    if (!command) return;
+    if (command.action === 'zoom-in') map.zoomIn();
+    else if (command.action === 'zoom-out') map.zoomOut();
+    else {
+      const p = factories.flatMap(x => (x.coordinates ? [x.coordinates] : []));
+      if (p.length) map.fitBounds(L.latLngBounds(p), { padding: [50, 42], maxZoom: 6 });
+    }
+  }, [map, command, factories]);
   useEffect(() => {
     const points = factories.flatMap(f => (f.coordinates ? [f.coordinates] : []));
     if (points.length)
@@ -61,6 +84,7 @@ export const FactoryMap = ({
   onSelect,
   full = false,
   layers = [],
+  command = null,
 }: {
   factories: Factory[];
   selected: string | null;
@@ -68,6 +92,7 @@ export const FactoryMap = ({
   full?: boolean;
   /** Context layers to draw around the plants. Empty by default: the plants are the subject. */
   layers?: GeoLayerId[];
+  command?: MapCommand;
 }) => {
   const [failed, setFailed] = useState(false),
     [attempt, setAttempt] = useState(0),
@@ -115,7 +140,7 @@ export const FactoryMap = ({
           }}
         />
         {full && <ZoomControl position="topright" />}
-        <Fit factories={points} selected={selected} />
+        <Fit factories={points} selected={selected} command={command} />
         <ResetControl factories={points} />
         {points.map(f => (
           <Marker

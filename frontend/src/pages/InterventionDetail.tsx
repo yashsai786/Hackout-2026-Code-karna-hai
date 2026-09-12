@@ -26,7 +26,13 @@ export default function InterventionDetail() {
   const item = interventions.find(i => i.id === id),
     factoryId = params.get('factory') || factories[0].id,
     f = factories.find(f => f.id === factoryId);
-  const [adoption, setAdoption] = useState(100),
+  // A deep link may preset the slider ("solar at Bhilai at 60%"); clamp so a bad link cannot break the arithmetic.
+  const presetAdoption = params.get('adoption');
+  const [adoption, setAdoption] = useState(
+      presetAdoption !== null && Number.isFinite(Number(presetAdoption))
+        ? Math.max(0, Math.min(100, Math.round(Number(presetAdoption))))
+        : 100,
+    ),
     [addon, setAddon] = useState(''),
     [message, setMessage] = useState('');
   if (!item) return <NotFound kind="Intervention" to="/interventions" label="Intervention catalogue" />;

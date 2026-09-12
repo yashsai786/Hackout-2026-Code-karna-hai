@@ -28,7 +28,11 @@ Works offline. No API key needed for anything below except the optional Copilot 
 
 Land on the **Command Map**. 12 plants, 4.13M tCO₂e, four sectors.
 
-Switch on two **context layers** in the drawer — ☀️ Solar resource and ♻️ Recycling hubs.
+Type into **Navigate**: *"show solar and recycling hubs"*. Then *"take me to Bhilai Steel Works"*.
+
+> "One bar. It understood a layer command and a place, offline, with no model involved. Anything it
+> cannot place goes to the model behind your own key — and that model can only pick from targets
+> we hand it, so it cannot invent a plant. Ask it a real question and it hands over to the Copilot."
 
 > "The plants are the subject, but a decision is made in context. Solar ranks first in Gujarat and
 > Rajasthan because the resource is there; a recycled-feedstock measure is realistic where scrap is
