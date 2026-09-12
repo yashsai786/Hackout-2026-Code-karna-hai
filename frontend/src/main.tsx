@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import { validateFixtures } from './domain/validation';
+import { hydrateReference } from './domain/fixtures';
+import { fetchReference } from './lib/leakpointApi';
 import './index.css';
 import './styles.css';
 import './styles-accessibility.css';
@@ -27,14 +27,31 @@ class Boundary extends React.Component<{ children: React.ReactNode }, { error: b
     );
   }
 }
-function ValidatedApp() {
+
+// The factor table comes from the API. It is fetched before App is even imported, so no module can
+// capture a stale built-in value; if the service is down within 2.5 s the built-ins stand in and the
+// footer says so.
+async function boot() {
+  try {
+    const ref = await Promise.race([
+      fetchReference(),
+      new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('timeout')), 2500)),
+    ]);
+    hydrateReference(ref.reference, 'api');
+  } catch {
+    /* built-in factors remain */
+  }
+  const [{ default: App }, { validateFixtures }] = await Promise.all([
+    import('./App.tsx'),
+    import('./domain/validation'),
+  ]);
   validateFixtures();
-  return <App />;
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <Boundary>
+        <App />
+      </Boundary>
+    </React.StrictMode>,
+  );
 }
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Boundary>
-      <ValidatedApp />
-    </Boundary>
-  </React.StrictMode>,
-);
+void boot();

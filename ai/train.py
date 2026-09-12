@@ -165,8 +165,18 @@ def main() -> None:
     model_hit = float((model_top == truth.argmax(1)).mean())
     table_hit = float((table_top == truth.argmax(1)).mean())
 
+    # Per-sector intensity quantiles across the cohort, so the API can say where a plant sits among
+    # its peers without shipping the cohort itself.
+    qs = [0.1, 0.25, 0.5, 0.75, 0.9]
+    benchmarks = {
+        sector: {f"p{int(q * 100)}": float(v) for q, v in
+                 zip(qs, data.loc[data["sector"] == sector, "intensity_tco2e_per_t"].quantile(qs))}
+        for sector in sorted(data["sector"].unique())
+    }
+
     OUT.mkdir(exist_ok=True)
     dump({"models": models, "encoder": encoder, "features": FEATURES, "categorical": CATEGORICAL,
+          "benchmarks": benchmarks,
           "sources": SOURCES, "targets": targets, "seed": SEED, "n_samples": N,
           "routes": ROUTES, "regions": REGIONS, "training": "synthetic",
           "metrics": {"model_share_mae": model_mae, "sector_table_share_mae": table_mae,

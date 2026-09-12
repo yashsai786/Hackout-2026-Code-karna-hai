@@ -19,6 +19,7 @@ const InterventionDetail = lazy(() => import('./pages/InterventionDetail'));
 const Credits = lazy(() => import('./pages/Credits'));
 const Ledger = lazy(() => import('./pages/Ledger'));
 const Alerts = lazy(() => import('./pages/Alerts'));
+const Analysis = lazy(() => import('./pages/Analysis'));
 const RouteFallback = () => (
   <div className="route-loading" role="status" aria-live="polite" data-testid="route-loading">
     <span />
@@ -42,6 +43,8 @@ export default function App() {
                     <Route path="/factories/:id/profile" element={<FactoryProfile />} />
                     <Route path="/interventions" element={<Interventions />} />
                     <Route path="/interventions/:id" element={<InterventionDetail />} />
+                    <Route path="/analysis" element={<Analysis />} />
+                    <Route path="/analysis/:id" element={<Analysis />} />
                     <Route path="/credits" element={<Credits />} />
                     <Route path="/ledger" element={<Ledger />} />
                     <Route path="/alerts" element={<Alerts />} />

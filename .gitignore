@@ -18,6 +18,7 @@ build/
 !backend/.env.example
 
 # Runtime
+backend/data/
 .api.log
 .pytest_cache/
 .ruff_cache/

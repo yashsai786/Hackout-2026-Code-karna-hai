@@ -6,8 +6,12 @@ export const extractionSamples = [
     kind: 'Utility statement',
     quantity: 185000,
     unit: 'kWh',
-    factor: reference.gridFactor,
-    rate: reference.gridRateINR,
+    get factor() {
+      return reference.gridFactor;
+    },
+    get rate() {
+      return reference.gridRateINR;
+    },
     confidence: 'High',
     period: '2025-12',
     filename: 'sample-electricity-dec-2025.pdf',
@@ -19,8 +23,12 @@ export const extractionSamples = [
     kind: 'Coal purchase register',
     quantity: 420,
     unit: 'tonnes coal',
-    factor: reference.coalFactor,
-    rate: reference.coalRateINR,
+    get factor() {
+      return reference.coalFactor;
+    },
+    get rate() {
+      return reference.coalRateINR;
+    },
     confidence: 'Medium',
     period: '2025-12',
     filename: 'sample-coal-register-dec-2025.csv',
@@ -32,8 +40,12 @@ export const extractionSamples = [
     kind: 'Waste disposal record',
     quantity: 85,
     unit: 'tonnes waste',
-    factor: reference.wasteFactor,
-    rate: reference.wasteRateINR,
+    get factor() {
+      return reference.wasteFactor;
+    },
+    get rate() {
+      return reference.wasteRateINR;
+    },
     confidence: 'Low',
     period: '2025-12',
     filename: 'sample-waste-manifest-dec-2025.pdf',

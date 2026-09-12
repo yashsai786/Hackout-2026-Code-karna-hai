@@ -9,12 +9,16 @@ import {
   type StreamChatOptions,
   type StreamResult,
 } from '../lib/openrouter';
+import { fetchSettings, saveSettings, deleteSettings, apiConfigured } from '../lib/leakpointApi';
 
 export type ToolSupport = 'yes' | 'no' | 'unknown';
 type ChatArgs = Omit<StreamChatOptions, 'apiKey' | 'model'> & { model?: string };
 
 type SettingsState = {
   connected: boolean;
+  /** True once the key and model are known to be stored on the API. */
+  persisted: boolean;
+  restoring: boolean;
   keyInfo: KeyInfo | null;
   models: Model[];
   modelsLoading: boolean;
@@ -70,9 +74,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const defaultModelRef = useRef('');
   const requested = useRef(false);
 
+  const [persisted, setPersisted] = useState(false);
+  const [restoring, setRestoring] = useState(apiConfigured());
+
   const setDefaultModel = useCallback((id: string) => {
     defaultModelRef.current = id;
     setDefaultModelState(id);
+    // Write through so the choice survives a refresh. Failure is silent: the choice still works now.
+    if (apiConfigured() && id)
+      saveSettings({ default_model: id }).then(
+        () => setPersisted(true),
+        () => setPersisted(false),
+      );
   }, []);
 
   // Plain async with a ref guard. The previous shape ran its fetch inside a setModels updater,
@@ -93,11 +106,19 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const connect = useCallback(
-    async (key: string) => {
+    async (key: string, options: { persist?: boolean } = {}) => {
       const info = await validateKey(key);
       keyRef.current = key.trim();
       setKeyInfo(info);
       loadModels();
+      if (options.persist !== false && apiConfigured()) {
+        try {
+          await saveSettings({ openrouter_key: key.trim() });
+          setPersisted(true);
+        } catch {
+          setPersisted(false);
+        }
+      }
     },
     [loadModels],
   );
@@ -105,8 +126,38 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const disconnect = useCallback(() => {
     keyRef.current = '';
     setKeyInfo(null);
-    setDefaultModel('');
-  }, [setDefaultModel]);
+    setDefaultModelState('');
+    defaultModelRef.current = '';
+    setPersisted(false);
+    if (apiConfigured()) deleteSettings().catch(() => undefined);
+  }, []);
+
+  // Restore the stored key and model once on start. A rejected key is dropped rather than retried,
+  // so a revoked key cannot leave the app reconnecting forever.
+  useEffect(() => {
+    if (!apiConfigured()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const saved = await fetchSettings();
+        if (cancelled || !saved.has_key || !saved.openrouter_key) return;
+        if (saved.default_model) {
+          defaultModelRef.current = saved.default_model;
+          setDefaultModelState(saved.default_model);
+        }
+        await connect(saved.openrouter_key, { persist: false });
+        if (!cancelled) setPersisted(true);
+      } catch {
+        /* no API, or the saved key no longer validates: start disconnected */
+      } finally {
+        if (!cancelled) setRestoring(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const runChat = useCallback(async (o: ChatArgs) => {
     const apiKey = keyRef.current;
@@ -142,6 +193,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   const value: SettingsState = {
     connected,
+    persisted,
+    restoring,
     keyInfo,
     models,
     modelsLoading,

@@ -23,6 +23,7 @@ export const SettingsDialog = () => {
     disconnect,
     loadModels,
     toolModelCount,
+    persisted,
   } = useSettings();
   // Open state lives in the UI context so the Copilot can send the user here to connect a model.
   const { settingsOpen: open, setSettingsOpen: setOpen } = useChrome();
@@ -70,8 +71,8 @@ export const SettingsDialog = () => {
       <DialogContent className="app-dialog settings-dialog" data-testid="settings-dialog">
         <DialogTitle data-testid="settings-title">Settings</DialogTitle>
         <DialogDescription data-testid="settings-description">
-          Session-only preferences. Your key is never sent to a Leakpoint server and is never stored; it
-          clears on refresh.
+          Your key and default model are saved on your Leakpoint API so they survive a refresh. They are used
+          only to call OpenRouter from this browser and are never sent anywhere else.
         </DialogDescription>
 
         <div className="settings-body">
@@ -152,7 +153,7 @@ export const SettingsDialog = () => {
                 <div className="key-info" data-testid="openrouter-key-info">
                   <div>
                     <span className="settings-note">Status</span>
-                    <strong>Active this session</strong>
+                    <strong>{persisted ? 'Saved on the API' : 'Active this session'}</strong>
                   </div>
                   {keyInfo?.usage != null && (
                     <div>

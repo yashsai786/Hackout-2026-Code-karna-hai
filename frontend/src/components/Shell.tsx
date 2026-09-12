@@ -2,6 +2,7 @@ import { NavLink, Link, useLocation } from 'react-router-dom';
 import { Bell, Menu, SlidersHorizontal, Globe2 } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { useSession } from '../state/SessionContext';
+import { referenceSource } from '../domain/fixtures';
 import { useMapPanel } from '../state/ui';
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ const navItems = [
   { to: '/', label: 'Command Map', short: 'Map' },
   { to: '/intake', label: 'Data Intake', short: 'Intake' },
   { to: '/factories', label: 'Factories', short: 'Factories' },
+  { to: '/analysis', label: 'AI analysis', short: 'AI analysis' },
   { to: '/interventions', label: 'Interventions', short: 'Interventions' },
   { to: '/credits', label: 'Credits', short: 'Credits' },
   { to: '/ledger', label: 'Ledger', short: 'Ledger' },
@@ -27,7 +29,7 @@ const testid = (l: string) => `nav-${l.toLowerCase().replace(/ /g, '-')}`;
 
 export const Shell = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
-  const { inbox } = useSession();
+  const { inbox, sync, savedAt, syncError } = useSession();
   const { panelOpen, setPanelOpen } = useMapPanel();
   const unread = inbox.filter(m => !m.read).length;
   const isMap = pathname === '/';
@@ -134,7 +136,13 @@ export const Shell = ({ children }: { children: ReactNode }) => {
           </main>
           <footer className="app-footer" data-testid="app-footer">
             <span>Built for a lower-carbon industry.</span>
-            <span>Sample dataset · FY 2025</span>
+            <span data-testid="data-source" title={syncError || undefined}>
+              {sync === 'api'
+                ? `Data: Leakpoint API${savedAt ? ` · saved ${new Date(savedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : ''} · factors: ${referenceSource === 'api' ? 'API' : 'built-in'}`
+                : sync === 'checking'
+                  ? 'Data: connecting to the API…'
+                  : 'Data: this browser only — API unreachable'}
+            </span>
           </footer>
         </>
       )}

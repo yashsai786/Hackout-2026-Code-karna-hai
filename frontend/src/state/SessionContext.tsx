@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useRef, useEffect, type ReactNode 
 import { factories as fixtureFactories, interventions, initialInbox } from '../domain/fixtures';
 import { scenario } from '../domain/calculations';
 import type { Factory, IntakeRecord, LedgerEntry, InboxItem, Sector } from '../domain/types';
+import { fetchState, saveState, deleteState, apiConfigured } from '../lib/leakpointApi';
 
 function seedLedger(): LedgerEntry[] {
   return [
@@ -55,13 +56,19 @@ function loadStored(): {
 }
 
 export function resetSessionData() {
-  try {
-    localStorage.removeItem(STORE_KEY);
-  } catch {
-    /* private mode */
-  }
-  window.location.reload();
+  const local = () => {
+    try {
+      localStorage.removeItem(STORE_KEY);
+    } catch {
+      /* private mode */
+    }
+    window.location.reload();
+  };
+  // The API is the system of record, so it is cleared first; local storage is only a cache.
+  deleteState().then(local, local);
 }
+
+export type SyncState = 'checking' | 'api' | 'local';
 
 type State = {
   factories: Factory[];
@@ -69,6 +76,10 @@ type State = {
   intake: IntakeRecord[];
   inbox: InboxItem[];
   settings: Record<string, boolean>;
+  /** Where the data lives right now: the API (system of record) or this browser only. */
+  sync: SyncState;
+  savedAt: string | null;
+  syncError: string;
   setSetting: (key: string, value: boolean) => void;
   addFactory: (name: string, city: string, state: string, sector: Sector) => string;
   updateFactory: (id: string, patch: Partial<Factory>) => void;
@@ -94,6 +105,13 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     readiness: false,
     digest: true,
   });
+  const [sync, setSync] = useState<SyncState>(apiConfigured() ? 'checking' : 'local');
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState('');
+  const hydrated = useRef(false);
+  const lastSaved = useRef('');
+
+  // Local storage stays as a cache so a reload is instant and an API outage loses nothing.
   useEffect(() => {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({ factories, ledger, intake, inbox }));
@@ -101,12 +119,79 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       /* quota or private mode: the app still works, it just will not survive a reload */
     }
   }, [factories, ledger, intake, inbox]);
+
+  // Hydrate from the API once. A saved session replaces local state; an empty API is seeded from
+  // what this browser has, so the very first visitor also ends up with a server-side record.
+  useEffect(() => {
+    if (!apiConfigured()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const doc = await fetchState();
+        if (cancelled) return;
+        if (Array.isArray(doc.factories) && doc.factories.length) {
+          setFactories(doc.factories as Factory[]);
+          const led = (Array.isArray(doc.ledger) ? doc.ledger : []) as LedgerEntry[];
+          ledgerRef.current = led;
+          setLedger(led);
+          setIntake((Array.isArray(doc.intake) ? doc.intake : []) as IntakeRecord[]);
+          setInbox((Array.isArray(doc.inbox) ? doc.inbox : []) as InboxItem[]);
+          lastSaved.current = JSON.stringify({
+            factories: doc.factories,
+            ledger: led,
+            intake: doc.intake ?? [],
+            inbox: doc.inbox ?? [],
+          });
+          setSavedAt(doc.savedAt ?? null);
+        }
+        setSync('api');
+      } catch (e) {
+        if (cancelled) return;
+        const notFound = e instanceof Error && /404|No session/.test(e.message);
+        if (notFound) {
+          setSync('api'); // nothing saved yet: the write-through below seeds it
+        } else {
+          setSync('local');
+          setSyncError(e instanceof Error ? e.message : 'API unreachable');
+        }
+      } finally {
+        hydrated.current = true;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Write through, debounced, once hydrated. Only what changed since the last successful save.
+  useEffect(() => {
+    if (sync !== 'api' || !hydrated.current) return;
+    const doc = { factories, ledger, intake, inbox };
+    const serialised = JSON.stringify(doc);
+    if (serialised === lastSaved.current) return;
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await saveState(doc);
+        lastSaved.current = serialised;
+        setSavedAt(res.savedAt);
+        setSyncError('');
+      } catch (e) {
+        setSync('local');
+        setSyncError(e instanceof Error ? e.message : 'Save failed');
+      }
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [factories, ledger, intake, inbox, sync]);
   const value: State = {
     factories,
     ledger,
     intake,
     inbox,
     settings,
+    sync,
+    savedAt,
+    syncError,
     setSetting: (key, value) => setSettings(s => ({ ...s, [key]: value })),
     addFactory: (name, city, state, sector) => {
       const id = `new-${crypto.randomUUID()}`;

@@ -51,6 +51,12 @@ describe('parseCommand — the whole map from one sentence', () => {
     expect(P('edit Bhilai baseline')).toEqual({ type: 'route', path: '/factories/bhilai-steel/profile' });
     expect(P('go to ledger')).toEqual({ type: 'route', path: '/ledger' });
     expect(P('add a factory')).toEqual({ type: 'route', path: '/factories' });
+    expect(P('analyse Bhilai')).toEqual({ type: 'route', path: '/analysis/bhilai-steel' });
+    expect(P('run the AI analysis on bhilai steel works')).toEqual({
+      type: 'route',
+      path: '/analysis/bhilai-steel',
+    });
+    expect(P('ai analysis')).toEqual({ type: 'route', path: '/analysis' });
   });
 
   it('hands analysis to the Copilot instead of dead-ending', () => {
@@ -96,6 +102,10 @@ describe('model fallback is constrained', () => {
     expect(resultFromIntent({ action: 'state', state: 'gujarat' }, factories)).toEqual({
       type: 'state',
       state: 'Gujarat',
+    });
+    expect(resultFromIntent({ action: 'analysis', factory: 'bhilai-steel' }, factories)).toEqual({
+      type: 'route',
+      path: '/analysis/bhilai-steel',
     });
   });
   it('extracts JSON from a chatty reply and lists every id in the prompt', () => {

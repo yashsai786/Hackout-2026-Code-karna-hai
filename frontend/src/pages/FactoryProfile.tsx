@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Check, Plus, Sparkles, Trash2 } from 'lucide-rea
 import { toast } from 'sonner';
 import { useSession } from '../state/SessionContext';
 import { reference, sources, sourceLabels, historyFor, materialsFor } from '../domain/fixtures';
+import { ROUTES, FUELS, REGIONS } from '../domain/plant';
 
 import type { MaterialStream, Source } from '../domain/types';
 import {
@@ -54,15 +55,6 @@ const SAMPLE_TO_SOURCE: Record<string, Source> = {
   'Waste manifest': 'waste',
 };
 
-const ROUTES: Record<string, string[]> = {
-  Steel: ['BF-BOF', 'EAF'],
-  Cement: ['Dry kiln', 'Wet kiln'],
-  Textiles: ['Spinning', 'Wet processing'],
-  Chemicals: ['Bulk', 'Specialty'],
-};
-const FUELS = ['Coal', 'Natural gas', 'Biomass', 'Electric'];
-const REGIONS = ['North', 'West', 'South', 'East', 'Central'];
-
 type Row = { quantity: string; factor: string; rate: string };
 const num = (v: string) => {
   const n = Number(v);
@@ -105,11 +97,11 @@ export default function FactoryProfile() {
     factory?.materials?.length ? factory.materials : [],
   );
   // Estimator inputs: what an operator can answer without a carbon audit.
-  const [route, setRoute] = useState('');
-  const [fuel, setFuel] = useState('Coal');
-  const [region, setRegion] = useState('West');
-  const [age, setAge] = useState('15');
-  const [headcount, setHeadcount] = useState('150');
+  const [route, setRoute] = useState(factory?.profile?.route ?? '');
+  const [fuel, setFuel] = useState(factory?.profile?.fuel ?? 'Coal');
+  const [region, setRegion] = useState(factory?.profile?.region ?? 'West');
+  const [age, setAge] = useState(String(factory?.profile?.ageYears ?? 15));
+  const [headcount, setHeadcount] = useState(String(factory?.profile?.headcount ?? 150));
   const [spend, setSpend] = useState('');
   const [predicting, setPredicting] = useState(false);
   const [prediction, setPrediction] = useState<HotspotPrediction | null>(null);
@@ -208,6 +200,14 @@ export default function FactoryProfile() {
       // Confidence is earned by source coverage, not by position in an array.
       confidence: covered === 4 ? 'High' : covered >= 2 ? 'Medium' : 'Low',
       readiness: { ...factory.readiness, baselineDocumented: covered === 4, monitoring: covered >= 2 },
+      // Keep what the operator told the model, so the analysis page never has to assume it again.
+      profile: {
+        route: route || ROUTES[factory.sector][0],
+        fuel,
+        region,
+        ageYears: num(age) || 15,
+        headcount: num(headcount) || 150,
+      },
     });
     toast.success(`Baseline set for ${factory.name}. Recommendations are now available.`);
     navigate(`/factories/${factory.id}`);

@@ -7,6 +7,14 @@ export type MaterialStream = {
   costPerTonne: number;
   recycledShare: number;
 };
+/** What an operator can say about a plant without an audit — the model's inputs. */
+export type PlantDescriptors = {
+  route: string;
+  fuel: string;
+  region: string;
+  ageYears: number;
+  headcount: number;
+};
 export type Factory = {
   id: string;
   name: string;
@@ -23,6 +31,8 @@ export type Factory = {
   exportShare: number;
   history: { month: string; emissions: number }[];
   materials: MaterialStream[];
+  /** Captured on the profile page; absent for seeded plants until someone describes them. */
+  profile?: PlantDescriptors;
   readiness: {
     baselineDocumented: boolean;
     additionality: boolean;
@@ -77,6 +87,9 @@ export type IntakeRecord = {
   emissions: number;
   cost: number;
   period: string;
+  /** How the figures were obtained: read from a document by the API, or a labelled sample. */
+  method?: 'table' | 'pdf-text' | 'text' | 'sample' | 'manual';
+  evidence?: string[];
 };
 export type InboxItem = {
   id: string;

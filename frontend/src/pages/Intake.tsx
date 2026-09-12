@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useSession } from '../state/SessionContext';
 import { extractionSamples } from '../domain/extraction';
+import { reference } from '../domain/fixtures';
+import { extractDocument, type Extraction } from '../lib/leakpointApi';
 import { extractEstimate } from '../domain/calculations';
 import { PageHeading, Notice, Btn, Tag, fmt, money, SectionHeading } from '../components/Primitives';
 const sampleIcons = [Zap, Flame, Recycle];
@@ -23,7 +25,9 @@ export default function Intake() {
   const [factoryId, setFactoryId] = useState(params.get('factory') || factories[0].id),
     [sampleId, setSampleId] = useState('electricity');
   const [stage, setStage] = useState<'select' | 'processing' | 'review' | 'saved'>('select');
-  const [file, setFile] = useState<{ name: string; size: number } | null>(null),
+  const [file, setFile] = useState<File | null>(null),
+    [extraction, setExtraction] = useState<Extraction | null>(null),
+    abort = useRef<AbortController | null>(null),
     [error, setError] = useState('');
   const [quantity, setQuantity] = useState(''),
     [factor, setFactor] = useState(''),
@@ -61,27 +65,70 @@ export default function Intake() {
     if (!f) return;
     setError('');
     if (f.size > 20 * 1024 * 1024) {
-      setError('Choose a file smaller than 20 MB. Only its name and size will be captured.');
+      setError('Choose a file smaller than 20 MB.');
       return;
     }
-    setFile({ name: f.name, size: f.size });
+    setFile(f);
+    setExtraction(null);
     setCancelled(false);
   };
-  const start = () => {
+  // Factors and prices per source come from the reference table (hydrated from the API at boot).
+  const profileFor = (kind: string) =>
+    kind === 'fuel'
+      ? { unit: 'tonnes coal', factor: reference.coalFactor, rate: reference.coalRateINR, sampleId: 'fuel' }
+      : kind === 'waste'
+        ? {
+            unit: 'tonnes waste',
+            factor: reference.wasteFactor,
+            rate: reference.wasteRateINR,
+            sampleId: 'waste',
+          }
+        : { unit: 'kWh', factor: reference.gridFactor, rate: reference.gridRateINR, sampleId: 'electricity' };
+
+  const start = async () => {
     if (!factory) return;
     saved.current = false;
     setCancelled(false);
+    setError('');
     setStage('processing');
-    timer.current = window.setTimeout(() => {
-      setQuantity(String(sample.quantity));
-      setFactor(String(sample.factor));
-      setRate(String(sample.rate));
-      setPeriod(sample.period);
+    if (!file) {
+      // No document: a labelled sample, so the review-and-apply flow can still be shown.
+      timer.current = window.setTimeout(() => {
+        setExtraction(null);
+        setQuantity(String(sample.quantity));
+        setFactor(String(sample.factor));
+        setRate(String(sample.rate));
+        setPeriod(sample.period);
+        setStage('review');
+      }, 600);
+      return;
+    }
+    abort.current = new AbortController();
+    try {
+      const out = await extractDocument(file, null, abort.current.signal);
+      const kind = out.source_type === 'unknown' ? sampleId : out.source_type;
+      const prof = profileFor(kind);
+      setSampleId(prof.sampleId);
+      setExtraction(out);
+      setQuantity(out.quantity !== null ? String(Math.round(out.quantity * 100) / 100) : '');
+      setFactor(String(prof.factor));
+      // A unit price read from the document beats the reference price.
+      setRate(
+        out.quantity && out.cost_inr
+          ? String(Math.round((out.cost_inr / out.quantity) * 100) / 100)
+          : String(prof.rate),
+      );
+      setPeriod(out.period ?? new Date().toISOString().slice(0, 7));
       setStage('review');
-    }, 1500);
+    } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
+      setStage('select');
+      setError(e instanceof Error ? e.message : 'The document could not be read.');
+    }
   };
   const cancel = () => {
     if (timer.current) clearTimeout(timer.current);
+    abort.current?.abort();
     setStage('select');
     setCancelled(true);
   };
@@ -90,7 +137,7 @@ export default function Intake() {
     saved.current = true;
     addIntake({
       factoryId,
-      sample: sample.name,
+      sample: extraction ? `${sample.name} (read from ${extraction.filename})` : `${sample.name} (sample)`,
       fileName: file?.name || null,
       fileSize: file?.size ?? null,
       quantity: Number(quantity),
@@ -100,6 +147,8 @@ export default function Intake() {
       emissions: estimate.emissions,
       cost: estimate.cost,
       period,
+      method: extraction ? extraction.method : 'sample',
+      evidence: extraction ? extraction.evidence : [`Sample record: ${sample.name}`],
     });
     setStage('saved');
   };
@@ -122,8 +171,9 @@ export default function Intake() {
         ))}
       </div>
       <Notice id="intake-disclosure">
-        Sample extractions. Files are <strong>never read or uploaded</strong> — only the name and size are
-        kept. Document OCR is on the roadmap; enter measured figures on the factory profile.
+        Documents are read by your Leakpoint API and nothing else: CSV, XLSX, text and text-based PDFs are
+        parsed with the evidence shown for every figure. Scans and photos are refused rather than guessed —
+        OCR is not part of this service.
       </Notice>
       {!factory && (
         <div className="notice warning" role="alert" data-testid="intake-invalid-factory">
@@ -181,7 +231,13 @@ export default function Intake() {
         <div className="intake-layout">
           <section>
             <SectionHeading
-              title={stage === 'review' ? 'Review the sample extraction' : 'Choose your source'}
+              title={
+                stage === 'review'
+                  ? extraction
+                    ? 'Review the extraction'
+                    : 'Review the sample'
+                  : 'Choose your source'
+              }
               note={
                 stage === 'review'
                   ? 'All values are editable before confirmation'
@@ -225,15 +281,15 @@ export default function Intake() {
                   <strong>{file ? file.name : 'Drop a source document here'}</strong>
                   <p>
                     {file
-                      ? `${fmt(file.size)} bytes · Metadata captured only`
-                      : 'PDF, image, or spreadsheet · up to 20 MB'}
+                      ? `${fmt(file.size)} bytes · will be read by the API`
+                      : 'CSV, XLSX, TXT or a text-based PDF · up to 20 MB'}
                   </p>
                   <input
                     ref={fileInput}
                     className="sr-only"
                     type="file"
-                    aria-label="Choose source document metadata"
-                    accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xlsx,.xls,.txt,.docx"
+                    aria-label="Choose a source document"
+                    accept=".pdf,.csv,.xlsx,.xls,.txt"
                     data-testid="intake-file"
                     onChange={e => capture(e.target.files?.[0])}
                   />
@@ -255,7 +311,7 @@ export default function Intake() {
                       </Btn>
                     )}
                   </div>
-                  <small>Optional · sample flows also work without a file</small>
+                  <small>No document handy? Pick a sample below — it is labelled as one.</small>
                 </div>
                 {error && (
                   <p role="alert" className="field-error" data-testid="intake-file-error">
@@ -263,7 +319,7 @@ export default function Intake() {
                   </p>
                 )}
                 <div className="sample-divider">
-                  <span>SELECT A SAMPLE FLOW</span>
+                  <span>{file ? 'OR USE A SAMPLE INSTEAD' : 'SAMPLE FLOWS'}</span>
                 </div>
                 <div className="sample-grid">
                   {extractionSamples.map((s, i) => {
@@ -292,10 +348,10 @@ export default function Intake() {
                 <div className="form-bottom">
                   <span className="muted">
                     <ShieldCheck size={14} />
-                    No document content leaves your browser
+                    Read by your Leakpoint API · sent nowhere else
                   </span>
                   <Btn variant="primary" data-testid="run-extraction" disabled={!factory} onClick={start}>
-                    Run sample extraction
+                    {file ? 'Read this document' : 'Run sample extraction'}
                     <ArrowRight size={16} />
                   </Btn>
                 </div>
@@ -304,8 +360,8 @@ export default function Intake() {
             {stage === 'processing' && (
               <div className="processing-state" role="status" data-testid="extraction-processing">
                 <LoaderCircle size={35} className="spin" />
-                <h2>Preparing sample fields…</h2>
-                <p>Simulated flow · no document is being read</p>
+                <h2>{file ? `Reading ${file.name}…` : 'Preparing sample fields…'}</h2>
+                <p>{file ? 'Parsing the document on the API' : 'Sample flow · no document involved'}</p>
                 <Btn data-testid="cancel-extraction" onClick={cancel}>
                   Cancel extraction
                 </Btn>
@@ -317,12 +373,34 @@ export default function Intake() {
                   <FileText size={22} />
                   <div>
                     <strong>{file?.name || sample.filename}</strong>
-                    <span>{sample.name} · Sample-derived fields</span>
+                    <span>
+                      {extraction
+                        ? `${sample.name} · read by ${extraction.method === 'table' ? 'table parser' : extraction.method === 'pdf-text' ? 'PDF text layer' : 'text parser'}`
+                        : `${sample.name} · sample values`}
+                    </span>
                   </div>
-                  <Tag id="extraction-confidence" tone={sample.confidence === 'High' ? 'success' : 'warning'}>
-                    {sample.confidence} confidence
+                  <Tag
+                    id="extraction-confidence"
+                    tone={(extraction?.confidence ?? sample.confidence) === 'High' ? 'success' : 'warning'}
+                  >
+                    {extraction?.confidence ?? sample.confidence} confidence
                   </Tag>
                 </div>
+                {extraction && (
+                  <div className="evidence-card" data-testid="extraction-evidence">
+                    <span className="eyebrow">WHERE EACH FIGURE CAME FROM</span>
+                    <ul>
+                      {extraction.evidence.map(e => (
+                        <li key={e}>{e}</li>
+                      ))}
+                      {extraction.warnings.map(w => (
+                        <li key={w} className="warning">
+                          {w}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="form-grid extraction-fields">
                   <label>
                     Quantity ({sample.unit})
@@ -334,7 +412,11 @@ export default function Intake() {
                       value={quantity}
                       onChange={e => setQuantity(e.target.value)}
                     />
-                    <small>Sample confidence: {sample.confidence}</small>
+                    <small>
+                      {extraction
+                        ? 'Read from the document · editable'
+                        : `Sample value · ${sample.confidence} confidence`}
+                    </small>
                   </label>
                   <label>
                     Emission factor (tCO₂e / {sample.unit})
@@ -358,7 +440,11 @@ export default function Intake() {
                       value={rate}
                       onChange={e => setRate(e.target.value)}
                     />
-                    <small>Indicative cost, excluding tax</small>
+                    <small>
+                      {extraction?.cost_inr
+                        ? 'Derived from the document’s amount'
+                        : 'Reference price · editable'}
+                    </small>
                   </label>
                   <label>
                     Reporting month
@@ -377,8 +463,8 @@ export default function Intake() {
                   </p>
                 )}
                 <Notice id="extraction-factor-assumptions">
-                  {sample.note} Edits recalculate the source estimate immediately. Confidence is descriptive,
-                  not verification.
+                  {sample.note} Edits recalculate the source estimate immediately. Confidence describes how
+                  much of the figure was read rather than assumed.
                 </Notice>
                 <div className="form-bottom">
                   <Btn data-testid="discard-extraction" onClick={cancel}>

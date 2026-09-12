@@ -75,16 +75,16 @@ Leakpoint replaces the first and most expensive step of that audit: locating the
 
 | The problem statement asks for | Where it lives |
 | --- | --- |
-| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** demonstrates the review-and-apply flow on labelled sample extractions; document OCR is roadmap |
-| Detect emission leak points | **Hotspot disaggregation** — the ML model splits the baseline across fuel, electricity, process and waste |
+| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** reads a bill, register or manifest through the API (CSV, XLSX, text, text-layer PDF) and shows the evidence for every figure; scans are refused rather than guessed |
+| Detect emission leak points | **Hotspot disaggregation** — the ML model splits the baseline across fuel, electricity, process and waste. **AI analysis** runs it on one plant: declared vs model split, peer benchmark, fuel-switch what-ifs, and one overall recommendation |
 | Quantify against a baseline | Baseline, intensity per tonne, and a confidence grade derived from data completeness |
 | Recommend circular alternatives | **Interventions** — sector- and material-eligible measures, ranked by this plant's hotspots |
 | Show the economics | Reduction, operating savings, return per year, capex scaled by the six-tenths rule, payback, 36-month cashflow |
 | Track what was decided | **Ledger** — recorded commitments, portfolio totals, CSV export |
 | Surface exposure and value | **Credits** — carbon-credit potential per plant. **Factory detail** — CBAM exposure for steel and cement exporters |
 
-Ten routes, all reachable, none decorative: Command Map · Intake · Factories · Factory detail ·
-Factory profile · Interventions · Intervention detail · Credits · Ledger · Alerts.
+Eleven routes, all reachable, none decorative: Command Map · Intake · Factories · Factory detail ·
+Factory profile · **AI analysis** · Interventions · Intervention detail · Credits · Ledger · Alerts.
 
 ---
 
@@ -180,9 +180,9 @@ scikit-learn · Vitest · pytest · GitHub Actions
 
 | | |
 | --- | --- |
-| Frontend tests | 45 (domain calculations, Copilot tool contracts) |
+| Frontend tests | 64 (calculations, commands, map layers, analysis narrative, Copilot tool contracts) |
 | Model tests | 7 (behaviour, provenance, the claim above) |
-| API contract tests | 6 (against a live service) |
+| API contract tests | 15 (state, settings, analysis, extraction, model — against a live service) |
 | Accessibility | 0 WCAG 2.1 A/AA violations across all routes (axe-core) |
 | Types | `strict: true`, no `any` escapes, enforced in CI |
 | Formatting | Prettier, enforced in CI |
@@ -198,14 +198,17 @@ Evidence and method: [`docs/QUALITY.md`](docs/QUALITY.md).
 - **Emission factors are national averages.** Real plants should substitute metered figures; the app
   labels which numbers are measured and which are estimated.
 - **Ledger entries are not registry-verified.** Every export says so explicitly.
-- **Session data is local.** State persists in the browser, not on a server — deliberate for a
-  demonstration, and the reason no plant data leaves the machine.
-- **The Copilot needs a key.** Bring your own OpenRouter key in Settings. Everything else works
+- **The API is the system of record.** Factories, baselines, intake records and the ledger hydrate from
+  `GET /api/v1/state` and write through on every change; the browser keeps only a cache, so an outage
+  loses nothing and the footer always says which it is using. Emission factors come from
+  `GET /api/v1/reference` at boot. Your OpenRouter key and model persist on the same API.
+- **The Copilot needs a key.** Bring your own OpenRouter key in Settings; it is stored on your local API,
+  used only to call OpenRouter from the browser, and never sent elsewhere. Everything else works
   without one, including the model.
 
 ## Next
 
-Vision and OCR intake (read a utility bill or a nameplate instead of typing it) · real BEE PAT
+OCR for scanned bills and nameplates (tables, text and text-layer PDFs already read) · real BEE PAT
 training data · anomaly detection on month-over-month drift · budget-constrained portfolio optimiser.
 
 ---

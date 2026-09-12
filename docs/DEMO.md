@@ -93,6 +93,15 @@ electric, 120,000 t, 9 years old — and put the two side by side.
 > it is not fixable with better arithmetic — the split isn't a function of anything the plant knows.
 > That is why there's a trained model in this repository and not just a spreadsheet."
 
+## 4b · The AI analysis page (40 seconds)
+
+Open **AI analysis** for the blast furnace.
+
+> "One page, one plant, both kinds of intelligence. The model says where the carbon most likely is
+> and how this plant compares with its peers; the calculation engine says what to do about it and
+> what it returns. The recommendation at the bottom is assembled from those figures and nothing
+> else — and the Copilot can narrate it, but cannot change a number in it."
+
 ## 5 · Committing to it (20 seconds)
 
 **Record to ledger** → **Ledger**.

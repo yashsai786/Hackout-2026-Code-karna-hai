@@ -9,6 +9,11 @@ export const sourceLabels: Record<Source, string> = {
   process: 'Process emissions',
   waste: 'Waste & effluent',
 };
+/**
+ * Emission factors and unit prices. The API is the source of record (GET /api/v1/reference); this
+ * object is hydrated from it before the app renders and these literals are only the fallback used
+ * when the service is unreachable. Mutated in place so every synchronous call site stays simple.
+ */
 export const reference = {
   carbonEUR: 75,
   eurINR: 90,
@@ -23,6 +28,13 @@ export const reference = {
   wasteRateINR: 1400,
   processRateINR: 600,
 };
+export let referenceSource: 'api' | 'built-in' = 'built-in';
+export function hydrateReference(patch: Partial<typeof reference>, source: 'api' | 'built-in' = 'api') {
+  for (const [k, v] of Object.entries(patch))
+    if (k in reference && typeof v === 'number' && Number.isFinite(v))
+      (reference as Record<string, number>)[k] = v;
+  referenceSource = source;
+}
 export const processFlows: Record<Sector, string[]> = {
   Steel: ['Raw materials', 'Coke & sinter', 'Blast furnace', 'Steelmaking', 'Casting & rolling'],
   Cement: ['Limestone', 'Raw grinding', 'Preheater', 'Clinker kiln', 'Cement grinding'],

@@ -6,10 +6,10 @@ What was tested, how, and what it found. Every figure here is reproducible with 
 
 | | Result | Reproduce |
 | --- | --- | --- |
-| Frontend tests | **45 passing** | `cd frontend && npm test` |
+| Frontend tests | **64 passing** | `cd frontend && npm test` |
 | Model tests | **7 passing** | `cd ai && python -m pytest` |
-| API contract tests | **6 passing** against a live service | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
-| Accessibility | **0 WCAG 2.1 A/AA violations** across 10 routes | axe-core 4.10 in-browser |
+| API contract tests | **15 passing** against a live service | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
+| Accessibility | **0 WCAG 2.1 A/AA violations** across 11 routes | axe-core 4.10 in-browser |
 | Types | `strict: true`, clean | `cd frontend && npm run typecheck` |
 | Formatting | Prettier clean | `cd frontend && npm run format:check` |
 | Clean-clone install | `npm ci` then `npm run build` succeeds | see below |
@@ -75,6 +75,7 @@ The starting point was **36 violations**; it is now **0**, verified after the mo
 | `/credits` | 0 | ✓ |
 | `/ledger` | 0 | ✓ |
 | `/alerts` | 0 | ✓ |
+| `/analysis/:id` | 0 | ✓ |
 
 "Rendered" is the render probe: the route must produce substantive text, so a crashed page cannot
 pass as accessible.
@@ -108,6 +109,10 @@ save baseline → ranked costed recommendations → record to ledger, with **zer
 
 Two steel plants were entered to confirm they receive materially different advice — the check that
 the model is doing real work rather than decorating a lookup table.
+
+Intake was exercised with a real two-row CSV bill: the API summed the "Units consumed (kWh)" column
+to 185,000, read the amount and billing period, showed the evidence for each, and the confirmed
+record was read back from `GET /api/v1/state` — server-side, not from the browser.
 
 ## Deliberately not done
 

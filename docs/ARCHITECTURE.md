@@ -8,13 +8,14 @@ Three tiers. Each has one job, and each degrades rather than failing when the on
 
 ```
 frontend/   React 19 + TypeScript. The product. Computes its own arithmetic.
-backend/    FastAPI. Serves the model. Nothing else.
+backend/    FastAPI. System of record, factor table, document extraction, and the model's API.
 ai/         scikit-learn. The trained model and the script that produces it.
 ```
 
-A judge can run `frontend/` alone and every screen works — only the ML split estimate is unavailable,
-and the app says so. This is not an accident: a demonstration that depends on three processes being
-healthy is a demonstration that fails on stage.
+The API is where data lives; the browser is where arithmetic happens. If the API is down the app
+still renders every screen from its cache and says so in the footer — a demonstration that depends on
+three processes being healthy is a demonstration that fails on stage — but nothing is authored in the
+browser alone: every change is written through the moment the service is back.
 
 ## The data flow
 
@@ -101,12 +102,26 @@ violations; keeping it that way is the cheapest structural guarantee in the code
 
 ## State
 
-React Context with `localStorage` persistence (`leakpoint.session.v1`). No server-side storage, no
-account, no telemetry. Plant data never leaves the machine — a deliberate choice for a tool asking
-SMEs to type in operational figures, and the reason the product needs no privacy policy to demo.
+The API is the system of record. On start the app hydrates from `GET /api/v1/state` (factories,
+baselines, intake records, ledger, inbox); every change writes through with `PUT /api/v1/state`,
+debounced. `localStorage` is a cache only, so a reload is instant and an API outage loses nothing —
+the footer states which source is live. Emission factors and prices hydrate from
+`GET /api/v1/reference` before `App` is even imported, so no module can capture a stale built-in.
+The operator's OpenRouter key and default model persist at `/api/v1/settings`.
 
-MongoDB is wired but optional. With no `MONGO_URL` the API reports `database: "not configured"` and
-runs normally.
+Storage is a JSON document beside the service (`backend/data/`, ignored by git) or MongoDB when
+`MONGO_URL` is set; the API reports which. No account, no telemetry; nothing leaves the machine
+except the browser's own calls to OpenRouter with the operator's key.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET/PUT/DELETE /api/v1/state` | the session document |
+| `GET/PUT/DELETE /api/v1/settings` | OpenRouter key and default model |
+| `GET /api/v1/reference` | emission factors and unit prices |
+| `POST /api/v1/intake/extract` | read a CSV, XLSX, text or text-layer PDF; evidence per figure |
+| `POST /api/v1/hotspots` | the model's emission split |
+| `POST /api/v1/analyse` | split vs declared, peer benchmark, what-ifs |
+| `GET /api/v1/model`, `/api/health` | model card and health |
 
 ## Failure behaviour
 

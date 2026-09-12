@@ -30,6 +30,7 @@ export const commandRoutes: Record<string, string> = {
   factories: '/factories',
   map: '/',
   settings: '/?settings=1',
+  analysis: '/analysis',
 };
 
 const LEAD =
@@ -129,7 +130,7 @@ export function parseCommand(input: string, factories: Factory[]): CommandResult
     // "what can Bhilai do" is a screen, not a question: a named plant plus an action word wins.
     const screen =
       findFactory(text, factories).length === 1 &&
-      /(what can .* do|intervention|measure|option|recommend|credit|cbam|profile|baseline|edit|update)/.test(
+      /(what can .* do|intervention|measure|option|recommend|credit|cbam|profile|baseline|edit|update|analy[sz]|analysis|assess|diagnos|audit)/.test(
         text,
       );
     if (!nav && !screen) return { type: 'copilot', question: input.trim() };
@@ -141,7 +142,8 @@ export function parseCommand(input: string, factories: Factory[]): CommandResult
     .trim();
 
   for (const [word, path] of Object.entries(commandRoutes))
-    if (clean === word || clean === `the ${word}` || text === word) return { type: 'route', path };
+    if (clean === word || clean === `the ${word}` || clean === `ai ${word}` || text === word)
+      return { type: 'route', path };
   if (/^(add|create|new) (a )?(factory|plant)$/.test(text)) return { type: 'route', path: '/factories' };
 
   // ---- factory-scoped screens ------------------------------------------------------------------
@@ -157,6 +159,8 @@ export function parseCommand(input: string, factories: Factory[]): CommandResult
         path: `/interventions/${measure.id}?factory=${f.id}${adoption !== null ? `&adoption=${adoption}` : ''}`,
       };
     }
+    if (/(analy[sz]|analysis|assess|diagnos|audit|insight)/.test(text))
+      return { type: 'route', path: `/analysis/${f.id}` };
     if (/(intervention|measure|option|what can .* do|recommend|fix|reduce|improve)/.test(text))
       return { type: 'route', path: `/interventions?factory=${f.id}` };
     if (/(credit|cbam|offset)/.test(text)) return { type: 'route', path: `/credits?factory=${f.id}` };
@@ -205,6 +209,7 @@ export type CommandIntent = {
     | 'scenario'
     | 'credits'
     | 'profile'
+    | 'analysis'
     | 'copilot'
     | 'clear'
     | 'none';
@@ -277,6 +282,10 @@ export function resultFromIntent(raw: unknown, factories: Factory[]): CommandRes
         path: `/interventions/${m.id}?factory=${f.id}${a !== null ? `&adoption=${a}` : ''}`,
       };
     }
+    case 'analysis': {
+      const f = factory();
+      return f ? { type: 'route', path: `/analysis/${f.id}` } : { type: 'unknown' };
+    }
     case 'credits': {
       const f = factory();
       return f ? { type: 'route', path: `/credits?factory=${f.id}` } : { type: 'unknown' };
@@ -301,7 +310,7 @@ export function intentPrompt(factories: Factory[]): string {
   const measures = interventions.map(i => `${i.id} — ${i.name}`).join('\n');
   return [
     'You control an industrial emissions map and dashboard from one short request. Reply with JSON only.',
-    'Schema: {"action": one of factory|sector|state|rank|route|layers|panel|map|interventions|scenario|credits|profile|copilot|clear|none,',
+    'Schema: {"action": one of factory|sector|state|rank|route|layers|panel|map|interventions|scenario|credits|profile|analysis|copilot|clear|none,',
     ' "factory": id, "sector": name, "state": name, "rank": "total"|"intensity", "route": key,',
     ' "layers": [ids], "mode": "set"|"add"|"remove"|"clear", "open": boolean, "map": "zoom-in"|"zoom-out"|"fit",',
     ' "intervention": id, "adoption": 0-100, "question": text}.',
@@ -311,7 +320,7 @@ export function intentPrompt(factories: Factory[]): string {
     measures,
     `Sectors: ${sectors.join(', ')}. States: ${[...new Set(factories.map(f => f.state))].join(', ')}.`,
     `Routes: ${Object.keys(commandRoutes).join(', ')}. Layers: ${Object.keys(geoLayers).join(', ')}.`,
-    'rank=total is "who emits most"; rank=intensity is "most per tonne". scenario opens one measure for one factory.',
+    'rank=total is "who emits most"; rank=intensity is "most per tonne". scenario opens one measure for one factory; analysis runs the model on one factory.',
     'Any analytical or comparative question (why, how much, payback, compare, which first) → {"action":"copilot","question":<the request>}.',
     'If nothing fits → {"action":"none"}. Never invent an id.',
   ].join('\n');
