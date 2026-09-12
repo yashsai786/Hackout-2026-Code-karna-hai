@@ -6,6 +6,9 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --silent
 
 COPY frontend/ ./
+# Two frontend tests prove the served catalogue and seed equal the offline fallbacks; the build's
+# typecheck compiles those tests, so the files they import must exist at the same relative path.
+COPY backend/catalogue.json backend/seed.json /backend/
 ARG REACT_APP_BACKEND_URL=http://localhost:8001
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 RUN npm run build
