@@ -104,4 +104,6 @@ echo
 info "Press Ctrl-C to stop both."
 echo
 
-cd frontend && eval "$PKG_RUN start"
+# --port is passed explicitly: without it Vite takes FRONTEND_PORT from frontend/.env and the URL
+# printed above could name a different port from the one actually served.
+cd frontend && eval "$PKG_RUN start -- --port $WEB_PORT --strictPort"
