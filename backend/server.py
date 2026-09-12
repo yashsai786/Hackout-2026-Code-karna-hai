@@ -40,11 +40,24 @@ async def lifespan(app: FastAPI):
         try:
             from motor.motor_asyncio import AsyncIOMotorClient
             client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=1500)
-            state['db'] = client[os.environ.get('DB_NAME', 'leakpoint')]
+            db = client[os.environ.get('DB_NAME', 'leakpoint')]
+            await db.command('ping')          # decide now, not on the first request
+            state['db'] = db
         except Exception:
-            state['db'] = None
+            state['db'] = None                # files carry on; /api/health says so
     state['store'] = Store(state['db'])
     state['settings'] = SettingsStore(state['db'])
+    if state['db'] is not None:
+        # First run against Mongo: bring across whatever the file store already holds.
+        file_store, file_settings = Store(None), SettingsStore(None)
+        if await state['store'].load() is None:
+            doc = await file_store.load()
+            if doc:
+                await state['store'].save(doc)
+        if not (await state['settings'].load()):
+            doc = await file_settings.load()
+            if doc:
+                await state['settings'].save(doc)
     ocr.warm()
     yield
     if client is not None:
@@ -99,13 +112,13 @@ class HotspotResponse(BaseModel):
 @app.get('/api/health', response_model=Health)
 async def health() -> Health:
     bundle = state['bundle']
-    database = 'not configured'
+    database = 'file store (MongoDB not configured)' if not os.environ.get('MONGO_URL') else 'file store (MongoDB unreachable at startup)'
     if state['db'] is not None:
         try:
             await state['db'].command('ping')
-            database = 'available'
+            database = 'MongoDB'
         except Exception:
-            database = 'unavailable (service unaffected)'
+            database = 'MongoDB unreachable (last writes may not have persisted)'
     return Health(
         model_loaded=bundle is not None,
         model_training=(bundle or {}).get('training'),

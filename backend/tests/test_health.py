@@ -201,6 +201,11 @@ def test_reads_a_scanned_pdf_by_rasterising_it():
     assert out['pages'] == 1
 
 
+def test_health_names_the_store_in_use():
+    h = requests.get(f'{BASE_URL}/api/health', timeout=10).json()
+    assert h['database'].startswith(('MongoDB', 'file store'))
+
+
 def test_health_reports_ocr():
     h = requests.get(f'{BASE_URL}/api/health', timeout=10).json()
     assert h['ocr'] in ('ready', 'loading')

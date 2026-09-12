@@ -109,8 +109,10 @@ the footer states which source is live. Emission factors and prices hydrate from
 `GET /api/v1/reference` before `App` is even imported, so no module can capture a stale built-in.
 The operator's OpenRouter key and default model persist at `/api/v1/settings`.
 
-Storage is a JSON document beside the service (`backend/data/`, ignored by git) or MongoDB when
-`MONGO_URL` is set; the API reports which. No account, no telemetry; nothing leaves the machine
+Storage is MongoDB (`MONGO_URL`, default `mongodb://127.0.0.1:27017`, database `leakpoint`,
+collections `state` and `settings`). The connection is decided at startup: if Mongo does not answer
+a ping the same documents are kept in `backend/data/*.json`, and the first start that does reach
+Mongo imports them. `/api/health` names the store in use. No account, no telemetry; nothing leaves the machine
 except the browser's own calls to OpenRouter with the operator's key.
 
 | Endpoint | Purpose |

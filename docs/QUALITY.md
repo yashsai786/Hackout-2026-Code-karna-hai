@@ -8,7 +8,7 @@ What was tested, how, and what it found. Every figure here is reproducible with 
 | --- | --- | --- |
 | Frontend tests | **64 passing** | `cd frontend && npm test` |
 | Model tests | **7 passing** | `cd ai && python -m pytest` |
-| API contract tests | **18 passing** against a live service | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
+| API contract tests | **19 passing** against a live service (MongoDB as the store) | `cd backend && LEAKPOINT_API_URL=http://127.0.0.1:8001 python -m pytest` |
 | Accessibility | **0 WCAG 2.1 A/AA violations** across 11 routes | axe-core 4.10 in-browser |
 | Types | `strict: true`, clean | `cd frontend && npm run typecheck` |
 | Formatting | Prettier clean | `cd frontend && npm run format:check` |

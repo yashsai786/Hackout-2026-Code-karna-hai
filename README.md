@@ -24,7 +24,9 @@ One command. Creates the environment, installs both tiers, starts the API and th
 both URLs. **No API key, no database, no cloud account.** Node 18+ and Python 3.11+ are the only
 prerequisites; the trained model is committed, so nothing needs training first.
 
-No toolchain? `docker compose up --build`, then open <http://localhost:3000>.
+`run.sh` also starts a Homebrew MongoDB if one is installed; without one the API keeps the same data in
+a JSON file and says so. No toolchain? `docker compose up --build` (API, web and MongoDB), then open
+<http://localhost:3000>.
 
 ## See it work in 60 seconds
 
@@ -182,7 +184,7 @@ scikit-learn · Vitest · pytest · GitHub Actions
 | --- | --- |
 | Frontend tests | 64 (calculations, commands, map layers, analysis narrative, Copilot tool contracts) |
 | Model tests | 7 (behaviour, provenance, the claim above) |
-| API contract tests | 18 (state, settings, analysis, extraction incl. OCR, model — against a live service) |
+| API contract tests | 19 (state on MongoDB, settings, analysis, extraction incl. OCR, model — against a live service) |
 | Accessibility | 0 WCAG 2.1 A/AA violations across all routes (axe-core) |
 | Types | `strict: true`, no `any` escapes, enforced in CI |
 | Formatting | Prettier, enforced in CI |
@@ -198,9 +200,10 @@ Evidence and method: [`docs/QUALITY.md`](docs/QUALITY.md).
 - **Emission factors are national averages.** Real plants should substitute metered figures; the app
   labels which numbers are measured and which are estimated.
 - **Ledger entries are not registry-verified.** Every export says so explicitly.
-- **The API is the system of record.** Factories, baselines, intake records and the ledger hydrate from
-  `GET /api/v1/state` and write through on every change; the browser keeps only a cache, so an outage
-  loses nothing and the footer always says which it is using. Emission factors come from
+- **The API is the system of record, on MongoDB.** Factories, baselines, intake records and the ledger
+  hydrate from `GET /api/v1/state` and write through on every change; `/api/health` names the store.
+  When no MongoDB is reachable the same documents live in `backend/data/*.json` and are imported the
+  first time Mongo appears. The browser keeps only a cache, so an outage loses nothing. Emission factors come from
   `GET /api/v1/reference` at boot. Your OpenRouter key and model persist on the same API.
 - **The Copilot needs a key.** Bring your own OpenRouter key in Settings; it is stored on your local API,
   used only to call OpenRouter from the browser, and never sent elsewhere. Everything else works

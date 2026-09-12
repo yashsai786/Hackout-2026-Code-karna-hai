@@ -78,6 +78,17 @@ if [ ! -d frontend/node_modules ]; then
   (cd frontend && eval "$PKG_INSTALL")
 fi
 
+# ---------------------------------------------------------------- mongodb (optional)
+# The API uses MongoDB when it can reach one and falls back to a JSON file when it cannot, so this
+# only tries to be helpful: start a Homebrew-installed server if it is present and not running.
+if command -v mongosh >/dev/null && ! mongosh --quiet --eval 'db.runCommand({ping:1}).ok' >/dev/null 2>&1; then
+  if command -v brew >/dev/null && brew list --formula 2>/dev/null | grep -q '^mongodb-community'; then
+    info "starting MongoDB (brew services)"
+    brew services start mongodb-community >/dev/null 2>&1 || true
+    for _ in $(seq 1 15); do mongosh --quiet --eval 'db.runCommand({ping:1}).ok' >/dev/null 2>&1 && break; sleep 1; done
+  fi
+fi
+
 # ---------------------------------------------------------------- run
 cleanup() { trap - EXIT INT TERM; [ -n "${API_PID:-}" ] && kill "$API_PID" 2>/dev/null || true; }
 trap cleanup EXIT INT TERM
