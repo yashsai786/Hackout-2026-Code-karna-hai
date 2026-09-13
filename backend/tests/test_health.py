@@ -168,10 +168,18 @@ def _bill_png(lines):
     import io
     img = Image.new('RGB', (900, 90 + 70 * len(lines)), 'white')
     d = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', 44)
-    except Exception:
-        font = ImageFont.load_default(size=44)
+    # A real vector font on every platform: Helvetica on macOS, DejaVu on the Linux runners. Pillow's
+    # bitmap fallback renders too coarsely for OCR to read digits reliably.
+    font = None
+    for path in ('/System/Library/Fonts/Helvetica.ttc', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+                 '/usr/share/fonts/dejavu/DejaVuSans.ttf', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'):
+        try:
+            font = ImageFont.truetype(path, 48)
+            break
+        except Exception:
+            continue
+    if font is None:
+        font = ImageFont.load_default(size=48)
     for i, line in enumerate(lines):
         d.text((30, 30 + 70 * i), line, fill='black', font=font)
     buf = io.BytesIO(); img.save(buf, format='PNG'); return img, buf.getvalue()
@@ -189,8 +197,8 @@ def test_reads_a_photographed_bill_with_local_ocr():
     res = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('bill-photo.png', png, 'image/png')}, timeout=60)
     assert res.status_code == 200, res.text
     out = res.json()
-    assert out['method'].startswith('ocr') and out['source_type'] == 'electricity'
-    assert out['quantity'] == 185000 and out['cost_inr'] == 1387500 and out['period'] == '2025-12'
+    assert out['method'].startswith('ocr') and out['source_type'] == 'electricity', out
+    assert out['quantity'] == 185000 and out['cost_inr'] == 1387500 and out['period'] == '2025-12', out
     assert out['ocr_lines'] >= 3 and out['ocr_confidence'] > 0.8
     assert out['evidence'][0].startswith('OCR:')
 
@@ -200,8 +208,9 @@ def test_reads_a_scanned_pdf_by_rasterising_it():
     img, _ = _bill_png(['Waste manifest  Nov 2025', 'Sludge disposed: 85 tonnes', 'Charges INR 119,000'])
     buf = io.BytesIO(); img.save(buf, format='PDF'); pdf = buf.getvalue()
     out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('manifest-scan.pdf', pdf, 'application/pdf')}, timeout=60).json()
-    assert out['method'].startswith('ocr') and out['source_type'] == 'waste' and out['quantity'] == 85 and out['period'] == '2025-11'
-    assert out['pages'] == 1
+    assert out['method'].startswith('ocr') and out['source_type'] == 'waste', out
+    assert out['quantity'] == 85 and out['period'] == '2025-11', out
+    assert out['pages'] == 1, out
 
 
 def test_health_names_the_store_in_use():

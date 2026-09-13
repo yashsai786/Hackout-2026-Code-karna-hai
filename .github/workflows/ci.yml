@@ -63,6 +63,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Fonts and libraries for the OCR tests
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-dejavu-core libgl1 libglib2.0-0 libgomp1 libxcb1 > /dev/null
       - run: pip install -r backend/requirements.txt -r backend/requirements-ocr.txt
       - name: Start the API
         run: |
