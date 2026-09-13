@@ -123,7 +123,7 @@ except the browser's own calls to OpenRouter with the operator's key.
 | `GET /api/v1/reference` | emission factors and unit prices |
 | `GET /api/v1/interventions` | the measure catalogue (`backend/catalogue.json`; the frontend copy is a tested fallback) |
 | `GET /api/v1/alerts` | alerts computed from the session document at request time |
-| `POST /api/v1/intake/extract` | read CSV, XLSX, text, PDF, photo or scan; evidence per figure, OCR confidence when used |
+| `POST /api/v1/intake/extract` | read CSV, XLSX, text, PDF, photo or scan; with a key, the operator's model reads the text too and each proposed field is validated against the document (`llm_extract.py`); evidence per figure, OCR confidence when used, rejected model claims listed |
 | `POST /api/v1/hotspots` | the model's emission split |
 | `POST /api/v1/analyse` | split vs declared, peer benchmark, what-ifs |
 | `GET /api/v1/model`, `/api/health` | model card and health |

@@ -37,7 +37,7 @@ in step 2, and every number on every screen comes from the API.
 | | Do this | What it proves |
 | --- | --- | --- |
 | 1 | Land on the **Command Map**. 12 plants. Type into **Navigate**: *"show solar and recycling hubs"*, then *"take me to Bhilai Steel Works"*. | One bar drives the whole map, offline, with no model involved. |
-| 2 | **Factories → + Add factory.** You land on its profile. Enter production and the four emission sources — or drop one of the five sample documents in [`docs/demo-files/`](docs/demo-files/README.md) on **Intake**, including a photographed bill the local OCR reads. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
+| 2 | **Factories → + Add factory.** You land on its profile. Enter production and the four emission sources — or drop one of the six sample documents in [`docs/demo-files/`](docs/demo-files/README.md) on **Intake**, including a photographed bill the local OCR reads. Press **Estimate my split**. | The machine-learned model answers the question the operator cannot: *where is my carbon?* |
 | 3 | **Save baseline.** | The plant now has a baseline, hotspots, costs and a confidence grade — persisted in MongoDB. |
 | 4 | **Interventions.** Measures ranked *for this plant*: reduction, operating savings, **return per year**, capex. | Advice derived from this plant's hotspots, not its sector. |
 | 5 | Open one. Move the **adoption slider**. | Reduction, payback and a 36-month cashflow recompute live. |
@@ -78,7 +78,7 @@ Leakpoint replaces the first and most expensive step of that audit: locating the
 
 | The problem statement asks for | Where it lives |
 | --- | --- |
-| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** reads a bill, register or manifest through the API: CSV, XLSX, text and text-layer PDFs parsed directly, photos and scans read by a **local OCR engine** on the same machine, with the evidence and confidence for every figure |
+| Ingest plant data and process parameters | The **factory profile** — production, four emission sources, material streams, coordinates. **Intake** reads a bill, register or manifest through the API: CSV, XLSX, text and text-layer PDFs parsed directly, photos and scans read by a **local OCR engine**; with a key connected the operator's **model reads the text as well** — any layout, even prose — and every figure it proposes is **verified against the document** before it is accepted. Evidence and confidence shown for every figure |
 | Detect emission leak points | **Hotspot disaggregation** — the ML model splits the baseline across fuel, electricity, process and waste. **AI analysis** runs it on one plant: declared vs model split, peer benchmark, what-ifs, one recommendation |
 | Quantify against a baseline | Baseline, intensity per tonne, confidence grade from data completeness |
 | Recommend circular alternatives | **Interventions** — sector- and material-eligible measures, ranked by this plant's hotspots, with recycling hubs and resource layers on the map to show where they are realistic |
@@ -123,6 +123,7 @@ enforced by structure, not by a prompt.
 - **The Copilot cannot do arithmetic.** It has no calculator; it calls the engine's tools and reports
   them. Every answer is then scanned for numbers no tool returned, and any such figure is shown
   beneath the answer as the model's own arithmetic. Writes need a two-phase confirmation.
+- **Model-read documents are verified, not trusted.** When the model reads a bill, a quantity or cost is accepted only if the number can be derived from the text (2.14 million, 1.6 crore, 1,60,50,000 all count), a period only if that month is in the document, a plant only if the document names it, and a fuel only from a fixed factor table. Whatever fails is listed as rejected, next to the parser's value that stands.
 - **The Navigate bar is constrained.** Rules first, offline. What they cannot place goes to your model,
   which may choose only from the ids, sectors, layers and routes it is handed; anything else is discarded.
 - **Estimates say so.** Confidence grades come from data completeness; ledger entries are marked as

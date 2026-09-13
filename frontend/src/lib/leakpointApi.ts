@@ -160,7 +160,13 @@ export const fetchReference = () =>
 
 export type Extraction = {
   filename: string;
-  method: 'table' | 'pdf-text' | 'text' | 'ocr';
+  method: 'table' | 'pdf-text' | 'text' | 'ocr' | 'table+llm' | 'pdf-text+llm' | 'text+llm' | 'ocr+llm';
+  /** Set when the operator's model read the document too; only validated fields are applied. */
+  llm?: { model: string; accepted: string[]; rejected: string[] };
+  factory_id?: string;
+  factory_name?: string;
+  fuel_kind?: string;
+  factor?: number;
   ocr_confidence?: number;
   ocr_lines?: number;
   source_type: 'electricity' | 'fuel' | 'waste' | 'unknown';

@@ -16,7 +16,9 @@ once pasted in Settings, persists on the API.
 
 - Run `./run.sh` and leave it running.
 - Open <http://localhost:3000>.
-- If you want the Copilot section, paste an OpenRouter key into **Settings** first.
+- If you want the Copilot section or model-read documents, paste an OpenRouter key into **Settings** first.
+  A free-tier key allows 50 free-model requests a day and the small free models are slow; for the stage,
+  add a little credit and pick a stronger tool-capable model — the app tells you when a cap is hit.
 - If a previous run left data behind, clear it in Settings so the numbers below match.
 
 ---

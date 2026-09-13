@@ -189,18 +189,24 @@ export const FactoryMap = ({
                 iconAnchor: [15, 15],
               })}
             >
-              <Tooltip direction="top" offset={[0, -12]} className="geo-tooltip">
-                <strong>
-                  {layer.emoji} {g.name}
-                </strong>
-                <br />
-                {g.detail}
-                <br />
-                <em>{g.relevance}</em>
-                <br />
-                <small>
-                  {g.level === 'state' ? 'State-level classification' : 'Indicative hub'} · {g.source}
-                </small>
+              <Tooltip direction="top" offset={[0, -12]} className="geo-tooltip" opacity={1}>
+                <div className="geo-tip">
+                  <div className="geo-tip-head">
+                    <span className="geo-tip-emoji" aria-hidden="true">
+                      {layer.emoji}
+                    </span>
+                    <strong>{g.name}</strong>
+                    <span className="geo-tip-layer" style={{ background: layer.colour }}>
+                      {layer.label}
+                    </span>
+                  </div>
+                  <p className="geo-tip-detail">{g.detail}</p>
+                  <p className="geo-tip-why">{g.relevance}</p>
+                  <p className="geo-tip-source">
+                    {g.level === 'state' ? 'State-level classification' : 'Indicative hub, not a facility'} ·{' '}
+                    {g.source}
+                  </p>
+                </div>
               </Tooltip>
             </Marker>
           );

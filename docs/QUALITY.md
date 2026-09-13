@@ -130,9 +130,26 @@ save baseline → ranked costed recommendations → record to ledger, with **zer
 Two steel plants were entered to confirm they receive materially different advice — the check that
 the model is doing real work rather than decorating a lookup table.
 
-Intake was exercised with a real two-row CSV bill: the API summed the "Units consumed (kWh)" column
-to 185,000, read the amount and billing period, showed the evidence for each, and the confirmed
-record was read back from `GET /api/v1/state` — server-side, not from the browser.
+Intake was exercised with real documents in every format. A file holding several billing months yields
+one record for the latest month (a record is one source, one period) with the whole-file total stated in
+the evidence. The confirmed record was read back from `GET /api/v1/state` — server-side, not from the
+browser.
+
+**Model-assisted extraction** (`backend/llm_extract.py`) was verified live with the operator's key: a
+prose account note with no headers or labelled fields — *"consumption stood at 2.14 million units …
+payable Rupees 1.6 crore"* — came back as 2,140,000 kWh, ₹1.6 crore, December 2025, matched to Surat
+Textile Mills, with the model's quotes checked verbatim against the text; the furnace-oil PDF gained its
+fuel factor (3.1 tCO₂e/KL) from the fixed table and a match to Dahej. Four unit tests pin the
+validator: figures not derivable from the text, months not in it, plants it does not name and quotes it
+does not contain are all rejected and listed. The same runs found that a 600-token budget returned
+empty content from a reasoning model (fixed: 1,500 with retries), that CSV field separators were being
+read as digit grouping (fixed), and that the model's semantics for a multi-month file — the latest
+month, not a sum — were the right ones (the parser now agrees).
+
+One limit is the operator's, not the code's: a free-tier OpenRouter key is capped at 50 free-model
+requests a day. When the cap is hit the page says exactly that, quoting the provider, and the parser
+result stands; the live test skips rather than fails. For a demonstration, add credit or choose a paid
+model in Settings.
 
 OCR was exercised with a rendered photo of a coal register: the local engine (RapidOCR on ONNX
 Runtime, no system binary, no network) read four lines at 98% mean confidence and the extractor took

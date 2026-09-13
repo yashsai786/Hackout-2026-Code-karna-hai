@@ -88,7 +88,17 @@ export type IntakeRecord = {
   cost: number;
   period: string;
   /** How the figures were obtained: read from a document by the API, or a labelled sample. */
-  method?: 'table' | 'pdf-text' | 'text' | 'ocr' | 'sample' | 'manual';
+  method?:
+    | 'table'
+    | 'pdf-text'
+    | 'text'
+    | 'ocr'
+    | 'table+llm'
+    | 'pdf-text+llm'
+    | 'text+llm'
+    | 'ocr+llm'
+    | 'sample'
+    | 'manual';
   evidence?: string[];
 };
 export type InboxItem = {

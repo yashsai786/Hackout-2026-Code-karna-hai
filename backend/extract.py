@@ -98,29 +98,48 @@ def _from_table(frame, hint: Optional[str], filename: str, sheet: str = "") -> D
     ccol, cseries = pick(COST_HEADERS, exclude=RATE_WORDS)
     dcol = next((c for c, low in cols.items() if any(k in low for k in DATE_HEADERS)), None)
 
-    quantity = float(qseries.sum()) if qseries is not None else None
-    cost = float(cseries.sum()) if cseries is not None else None
-    if qcol is not None:
-        evidence.append(f"Quantity: column “{qcol}”, {len(qseries)} row(s) summed = {quantity:,.2f}")
-    else:
-        warnings.append("No quantity column recognised — enter the figure from the document.")
-    if ccol is not None:
-        evidence.append(f"Cost: column “{ccol}”, {len(cseries)} row(s) summed = ₹{cost:,.0f}")
+    # A record is one source for one reporting period. If the file carries several periods, the
+    # record takes the latest period's rows and the file's totals are stated alongside, not silently
+    # merged into a single month.
     period = None
+    row_mask = None
     if dcol is not None:
-        periods = sorted({p for p in (_period_from_text(str(v)) for v in frame[dcol].astype(str).head(200)) if p})
+        per_row = frame[dcol].astype(str).map(_period_from_text)
+        periods = sorted({p for p in per_row if p})
         if periods:
             period = periods[-1]
             if len(periods) > 1:
-                evidence.append(f"Period: column “{dcol}” spans {len(periods)} periods ({periods[0]} to {periods[-1]}); quantity and cost are the sum, recorded against {period}")
-                warnings.append(f"This file covers {len(periods)} periods. Record it as one entry, or split the rows if you want one record per month.")
-            else:
-                evidence.append(f"Period: column “{dcol}” → {period}")
+                row_mask = per_row == period
+    def total(series):
+        return float(series.sum()) if series is not None else None
+    def latest(col, series):
+        if series is None or row_mask is None:
+            return series
+        sub = frame.loc[row_mask, col].map(_num).dropna()
+        return sub if len(sub) else series
+    q_latest, c_latest = latest(qcol, qseries), latest(ccol, cseries)
+    quantity = total(q_latest)
+    cost = total(c_latest)
+    if qcol is not None:
+        evidence.append(f"Quantity: column “{qcol}”, {len(q_latest)} row(s) for {period or 'the file'} = {quantity:,.2f}")
+    else:
+        warnings.append("No quantity column recognised — enter the figure from the document.")
+    if ccol is not None:
+        evidence.append(f"Cost: column “{ccol}”, {len(c_latest)} row(s) for {period or 'the file'} = ₹{cost:,.0f}")
+    if dcol is not None and period:
+        if row_mask is not None:
+            n = int(row_mask.__len__()) and len(periods)
+            evidence.append(f"Period: column “{dcol}” holds {n} periods ({periods[0]} to {periods[-1]}); this record is {period}, the latest")
+            tot_q, tot_c = total(qseries), total(cseries)
+            evidence.append("Whole file: " + ", ".join(x for x in [f"{tot_q:,.2f} {UNIT_FOR.get(kind, '')}".strip() if tot_q is not None else "", f"₹{tot_c:,.0f}" if tot_c is not None else ""] if x))
+            warnings.append(f"The file covers {n} periods; one record per period is recommended — add the others from their rows.")
+        else:
+            evidence.append(f"Period: column “{dcol}” → {period}")
     if period is None:
         period = _period_from_text(filename) or _period_from_text(joined)
     confidence = "High" if quantity is not None and cost is not None else "Medium" if quantity is not None else "Low"
     return {
-        "method": "table", "source_type": kind, "unit": UNIT_FOR.get(kind),
+        "_text": f"{filename}\n{sheet}\n" + frame.head(400).to_csv(index=False), "method": "table", "source_type": kind, "unit": UNIT_FOR.get(kind),
         "quantity": quantity, "cost_inr": cost, "period": period,
         "rows": int(len(frame)), "confidence": confidence, "evidence": evidence, "warnings": warnings,
     }
@@ -158,7 +177,7 @@ def _from_text(text: str, hint: Optional[str], filename: str, method: str) -> Di
         evidence.append(f"Period: {period}")
     confidence = "High" if quantity is not None and cost is not None else "Medium" if quantity is not None else "Low"
     return {
-        "method": method, "source_type": kind, "unit": UNIT_FOR.get(kind),
+        "_text": text, "method": method, "source_type": kind, "unit": UNIT_FOR.get(kind),
         "quantity": quantity, "cost_inr": cost, "period": period,
         "chars": len(text), "confidence": confidence, "evidence": evidence, "warnings": warnings,
     }

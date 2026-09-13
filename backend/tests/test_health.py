@@ -156,11 +156,11 @@ def test_extracts_figures_from_a_csv_bill_with_evidence():
     res = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('electricity-dec-2025.csv', csv, 'text/csv')}, timeout=20)
     assert res.status_code == 200, res.text
     out = res.json()
-    assert out['method'] == 'table' and out['source_type'] == 'electricity'
-    assert out['quantity'] == 185000 and out['cost_inr'] == 1387500
-    # Two billing months summed: recorded against the latest, and the evidence says so.
+    assert out['method'].startswith('table') and out['source_type'] == 'electricity'
+    # Two billing months in one file: the record is the latest month's own figures; the whole-file total is stated.
+    assert out['quantity'] == 93000 and out['cost_inr'] == 697500
     assert out['period'] == '2025-12' and any('Units consumed' in e for e in out['evidence'])
-    assert any('spans 2 periods' in e for e in out['evidence'])
+    assert any('holds 2 periods' in e for e in out['evidence']) and any(e.startswith('Whole file: 185,000') for e in out['evidence'])
 
 
 def _bill_png(lines):
@@ -189,7 +189,7 @@ def test_reads_a_photographed_bill_with_local_ocr():
     res = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('bill-photo.png', png, 'image/png')}, timeout=60)
     assert res.status_code == 200, res.text
     out = res.json()
-    assert out['method'] == 'ocr' and out['source_type'] == 'electricity'
+    assert out['method'].startswith('ocr') and out['source_type'] == 'electricity'
     assert out['quantity'] == 185000 and out['cost_inr'] == 1387500 and out['period'] == '2025-12'
     assert out['ocr_lines'] >= 3 and out['ocr_confidence'] > 0.8
     assert out['evidence'][0].startswith('OCR:')
@@ -200,7 +200,7 @@ def test_reads_a_scanned_pdf_by_rasterising_it():
     img, _ = _bill_png(['Waste manifest  Nov 2025', 'Sludge disposed: 85 tonnes', 'Charges INR 119,000'])
     buf = io.BytesIO(); img.save(buf, format='PDF'); pdf = buf.getvalue()
     out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('manifest-scan.pdf', pdf, 'application/pdf')}, timeout=60).json()
-    assert out['method'] == 'ocr' and out['source_type'] == 'waste' and out['quantity'] == 85 and out['period'] == '2025-11'
+    assert out['method'].startswith('ocr') and out['source_type'] == 'waste' and out['quantity'] == 85 and out['period'] == '2025-11'
     assert out['pages'] == 1
 
 
@@ -250,5 +250,5 @@ def test_spreadsheet_register_uses_amount_not_rate_and_reads_its_name():
 def test_multi_month_csv_says_it_is_a_sum():
     csv = ("Billing period,Units consumed (kWh),Amount (INR)\n2025-10,100,1000\n2025-11,200,2000\n2025-12,300,3000\n").encode()
     out = requests.post(f'{BASE_URL}/api/v1/intake/extract', files={'file': ('bill.csv', csv, 'text/csv')}, timeout=20).json()
-    assert out['quantity'] == 600 and out['cost_inr'] == 6000 and out['period'] == '2025-12'
-    assert any('spans 3 periods' in e for e in out['evidence']) and out['warnings']
+    assert out['quantity'] == 300 and out['cost_inr'] == 3000 and out['period'] == '2025-12'
+    assert any('holds 3 periods' in e for e in out['evidence']) and any('Whole file: 600' in e for e in out['evidence']) and out['warnings']

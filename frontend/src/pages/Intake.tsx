@@ -27,6 +27,7 @@ export default function Intake() {
   const [stage, setStage] = useState<'select' | 'processing' | 'review' | 'saved'>('select');
   const [file, setFile] = useState<File | null>(null),
     [extraction, setExtraction] = useState<Extraction | null>(null),
+    [unitLabel, setUnitLabel] = useState<string | null>(null),
     abort = useRef<AbortController | null>(null),
     [error, setError] = useState('');
   const [quantity, setQuantity] = useState(''),
@@ -70,6 +71,7 @@ export default function Intake() {
     }
     setFile(f);
     setExtraction(null);
+    setUnitLabel(null);
     setCancelled(false);
   };
   // Factors and prices per source come from the reference table (hydrated from the API at boot).
@@ -95,6 +97,7 @@ export default function Intake() {
       // No document: a labelled sample, so the review-and-apply flow can still be shown.
       timer.current = window.setTimeout(() => {
         setExtraction(null);
+        setUnitLabel(null);
         setQuantity(String(sample.quantity));
         setFactor(String(sample.factor));
         setRate(String(sample.rate));
@@ -110,8 +113,13 @@ export default function Intake() {
       const prof = profileFor(kind);
       setSampleId(prof.sampleId);
       setExtraction(out);
+      setUnitLabel(out.unit ?? null);
+      // The document named a plant we know: plan against it, and say so in the evidence (the API does).
+      if (out.factory_id && out.factory_id !== factoryId && factories.some(x => x.id === out.factory_id))
+        setFactoryId(out.factory_id);
       setQuantity(out.quantity !== null ? String(Math.round(out.quantity * 100) / 100) : '');
-      setFactor(String(prof.factor));
+      // A fuel the model identified carries its own factor from the API's table; otherwise the profile default.
+      setFactor(String(out.factor ?? prof.factor));
       // A unit price read from the document beats the reference price.
       setRate(
         out.quantity && out.cost_inr
@@ -142,7 +150,7 @@ export default function Intake() {
       fileSize: file?.size ?? null,
       quantity: Number(quantity),
       factor: Number(factor),
-      unit: sample.unit,
+      unit: unitLabel ?? sample.unit,
       costRate: Number(rate),
       emissions: estimate.emissions,
       cost: estimate.cost,
@@ -381,7 +389,7 @@ export default function Intake() {
                     <strong>{file?.name || sample.filename}</strong>
                     <span>
                       {extraction
-                        ? `${sample.name} · read by ${extraction.method === 'table' ? 'table parser' : extraction.method === 'pdf-text' ? 'PDF text layer' : extraction.method === 'ocr' ? 'local OCR' : 'text parser'}`
+                        ? `${sample.name} · read by ${extraction.method.startsWith('table') ? 'table parser' : extraction.method.startsWith('pdf-text') ? 'PDF text layer' : extraction.method.startsWith('ocr') ? 'local OCR' : 'text parser'}${extraction.llm ? ` + ${extraction.llm.model}` : ''}`
                         : `${sample.name} · sample values`}
                     </span>
                   </div>
@@ -397,7 +405,12 @@ export default function Intake() {
                     <span className="eyebrow">WHERE EACH FIGURE CAME FROM</span>
                     <ul>
                       {extraction.evidence.map(e => (
-                        <li key={e}>{e}</li>
+                        <li
+                          key={e}
+                          className={e.startsWith('Model (') || e.startsWith('Matched to') ? 'model' : ''}
+                        >
+                          {e}
+                        </li>
                       ))}
                       {extraction.warnings.map(w => (
                         <li key={w} className="warning">
@@ -409,7 +422,7 @@ export default function Intake() {
                 )}
                 <div className="form-grid extraction-fields">
                   <label>
-                    Quantity ({sample.unit})
+                    Quantity ({unitLabel ?? sample.unit})
                     <input
                       type="number"
                       min="0"
@@ -425,7 +438,7 @@ export default function Intake() {
                     </small>
                   </label>
                   <label>
-                    Emission factor (tCO₂e / {sample.unit})
+                    Emission factor (tCO₂e / {unitLabel ?? sample.unit})
                     <input
                       type="number"
                       min="0"
@@ -437,7 +450,7 @@ export default function Intake() {
                     <small>Assumed reference · editable</small>
                   </label>
                   <label>
-                    Unit cost (₹ / {sample.unit})
+                    Unit cost (₹ / {unitLabel ?? sample.unit})
                     <input
                       type="number"
                       min="0"

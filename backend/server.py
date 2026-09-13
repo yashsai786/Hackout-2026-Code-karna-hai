@@ -18,6 +18,8 @@ from store import Store, SettingsStore
 from reference import REFERENCE, REFERENCE_META
 from extract import extract as extract_document
 from alerts import build_alerts
+from llm_extract import enrich as llm_enrich
+from starlette.concurrency import run_in_threadpool
 import json as _json
 import ocr
 
@@ -357,6 +359,7 @@ async def analyse(body: AnalyseRequest) -> Dict:
 class OperatorSettings(BaseModel):
     openrouter_key: Optional[str] = Field(None, min_length=8, max_length=400)
     default_model: Optional[str] = Field(None, max_length=200)
+    extraction_model: Optional[str] = Field(None, max_length=200)
     tools_only: Optional[bool] = None
 
 
@@ -367,6 +370,7 @@ async def get_settings() -> Dict:
         'openrouter_key': doc.get('openrouter_key'),
         'default_model': doc.get('default_model'),
         'tools_only': doc.get('tools_only'),
+        'extraction_model': doc.get('extraction_model'),
         'has_key': bool(doc.get('openrouter_key')),
     }
 
@@ -406,13 +410,23 @@ async def intake_extract(file: UploadFile = File(...), hint: Optional[str] = For
     if len(data) > 20 * 1024 * 1024:
         raise HTTPException(status_code=413, detail='Files over 20 MB are not read.')
     try:
-        return extract_document(data, file.filename or '', file.content_type or '', hint)
+        result = extract_document(data, file.filename or '', file.content_type or '', hint)
     except ValueError as e:
         raise HTTPException(status_code=415, detail=str(e))
     except RuntimeError as e:  # OCR engine missing on this machine
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:  # a malformed spreadsheet should read as a message, not a stack trace
         raise HTTPException(status_code=422, detail=f'Could not read the file: {e}')
+    text = result.pop('_text', '')
+    # With a key connected, the operator's model reads the text too — validated against it, field by field.
+    settings = await state['settings'].load()
+    doc = await state['store'].load() or _json.loads(SEED_PATH.read_text())
+    plants = [{'id': f['id'], 'name': f['name'], 'city': f.get('city', '')} for f in doc.get('factories', [])]
+    # A dedicated extraction model can be set (EXTRACTION_MODEL or settings.extraction_model); otherwise the
+    # operator's default model reads documents too.
+    model = os.environ.get('EXTRACTION_MODEL') or settings.get('extraction_model') or settings.get('default_model')
+    result = await run_in_threadpool(llm_enrich, result, text, plants, settings.get('openrouter_key'), model)
+    return result
 
 
 # ------------------------------------------------------------------------------------------------

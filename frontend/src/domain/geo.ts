@@ -30,7 +30,7 @@ export const geoLayers: Record<
     emoji: '♻️',
     colour: '#0f9d58',
     note: 'Indicative hubs where secondary material is traded at scale — the supply side of a circular measure.',
-    source: 'Public record of established recycling clusters · indicative, not a facility directory',
+    source: 'Public record of established recycling clusters',
   },
   water: {
     label: 'Water stress',
@@ -44,14 +44,14 @@ export const geoLayers: Record<
     emoji: '☀️',
     colour: '#e8a317',
     note: 'States with the strongest solar resource; on-site solar ranks higher and pays back sooner.',
-    source: 'MNRE / NISE solar resource assessment · state-level classification',
+    source: 'MNRE / NISE solar resource assessment',
   },
   wind: {
     label: 'Wind resource',
     emoji: '🌬️',
     colour: '#4b7bb5',
     note: 'States with the largest assessed wind potential at 120 m hub height; open-access wind is realistic here.',
-    source: 'NIWE wind potential assessment at 120 m (2019) · state-level classification',
+    source: 'NIWE wind potential assessment at 120 m (2019)',
   },
 };
 

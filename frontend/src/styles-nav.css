@@ -1342,14 +1342,58 @@ textarea {
   font-size: 15px;
   line-height: 1;
 }
-.geo-tooltip {
-  max-width: 260px;
+/* Leaflet sets white-space: nowrap on .leaflet-tooltip; the compound selector outranks it so long
+   sources wrap inside the box instead of running past its edge. */
+.leaflet-tooltip.geo-tooltip {
   white-space: normal;
+  max-width: 300px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #dfe5ee;
+  box-shadow: 0 6px 20px #1a2a4a1f;
   font-size: 11px;
   line-height: 1.45;
 }
-.geo-tooltip small {
+.geo-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+.geo-tip-head strong {
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.geo-tip-emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+.geo-tip-layer {
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.geo-tip-detail {
+  margin: 0;
+  color: #1f2a3d;
+}
+.geo-tip-why {
+  margin: 4px 0 0;
+  color: #3f4d63;
+  font-style: italic;
+}
+.geo-tip-source {
+  margin: 7px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid #edf0f5;
   color: var(--muted);
+  font-size: 9.5px;
+  overflow-wrap: anywhere;
 }
 .map-legend .legend-layer b {
   font-size: 11px;
@@ -1613,6 +1657,9 @@ textarea {
   font-size: 11px;
   line-height: 1.6;
   color: #3f4d63;
+}
+.evidence-card li.model {
+  color: #1d47a8;
 }
 .evidence-card li.warning {
   color: #9a4b00;
