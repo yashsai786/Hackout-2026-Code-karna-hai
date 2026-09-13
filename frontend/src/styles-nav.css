@@ -1642,3 +1642,15 @@ textarea {
   line-height: 1;
   border: 2px solid #fff;
 }
+
+/* Interventions: the measures this plant cannot use, and why. */
+.excluded-measures {
+  margin: 18px 0 6px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.excluded-measures strong {
+  font-weight: 550;
+  color: #3f4d63;
+}

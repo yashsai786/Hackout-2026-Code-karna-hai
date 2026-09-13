@@ -13,7 +13,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { useSession } from '../state/SessionContext';
-import { interventions } from '../domain/fixtures';
+import { interventions, sectors, sourceLabels, sources } from '../domain/fixtures';
 import { scenario, eligibleFor, roiPercent } from '../domain/calculations';
 import { PageHeading, Tag, compact, money, Notice, Empty, Btn } from '../components/Primitives';
 export const fallbackInterventionIcon = Repeat;
@@ -46,13 +46,27 @@ export default function Interventions() {
           .map(i => ({ ...i, estimate: scenario(f, [i], 100) }))
           .sort((a, b) =>
             sort === 'capex'
-              ? a.capex - b.capex
+              ? a.estimate.capex - b.estimate.capex
               : sort === 'payback'
                 ? (a.estimate.paybackMonths ?? Infinity) - (b.estimate.paybackMonths ?? Infinity)
                 : sort === 'savings'
                   ? b.estimate.operatingSavings - a.estimate.operatingSavings
                   : b.estimate.reduction - a.estimate.reduction,
           )
+      : [];
+  // Measures the plant cannot use, and why — hidden rows read as a smaller catalogue, not a decision.
+  const excluded =
+    f && f.baseline !== null
+      ? interventions
+          .filter(i => !eligibleFor(f, i))
+          .map(i => ({
+            item: i,
+            reason: !i.sectors.includes(f.sector)
+              ? `${i.sectors.join(', ')} only`
+              : i.requiresMaterial
+                ? 'needs a declared material stream on the profile'
+                : 'not applicable',
+          }))
       : [];
   return (
     <>
@@ -62,7 +76,7 @@ export default function Interventions() {
         description="Practical levers for a lower footprint. Compare the impact before you commit."
         action={
           <Tag id="intervention-catalogue-count" tone="blue">
-            6 measures · 4 sectors
+            {interventions.length} measures · {sectors.length} sectors
           </Tag>
         }
       />
@@ -95,6 +109,17 @@ export default function Interventions() {
                 {f.baseline === null ? 'Awaiting baseline' : `${compact(f.baseline)} tCO₂e`}
               </strong>
             </div>
+            {f.baseline !== null && (
+              <div className="context-metric">
+                <span>Primary hotspot</span>
+                <strong data-testid="planning-hotspot">
+                  {(() => {
+                    const top = [...sources].sort((a, b) => f.hotspots[b] - f.hotspots[a])[0];
+                    return `${sourceLabels[top]} · ${Math.round((f.hotspots[top] / f.baseline!) * 100)}%`;
+                  })()}
+                </strong>
+              </div>
+            )}
             <div className="context-metric">
               <span>Sector</span>
               <Tag id="planning-sector" tone={f.sector.toLowerCase()}>
@@ -159,7 +184,18 @@ export default function Interventions() {
       ) : rows.length ? (
         <>
           <div className="results-label" data-testid="intervention-results">
-            {rows.length} relevant measures <span>· Ranked by this plant’s hotspots · at full adoption</span>
+            {rows.length} relevant measures{' '}
+            <span>
+              ·{' '}
+              {sort === 'reduction'
+                ? 'ranked by reduction'
+                : sort === 'savings'
+                  ? 'ranked by operating savings'
+                  : sort === 'capex'
+                    ? 'ranked by lowest capex'
+                    : 'ranked by fastest payback'}{' '}
+              · at full adoption · priced for this plant
+            </span>
           </div>
           <div className="intervention-grid">
             {rows.map((i, index) => {
@@ -188,7 +224,11 @@ export default function Interventions() {
                       {compact(i.estimate.reduction)}
                       <small>tCO₂e/yr</small>
                     </strong>
-                    <span>estimated reduction</span>
+                    <span>
+                      {((i.estimate.reduction / f.baseline!) * 100).toFixed(1)}% of the baseline · targets{' '}
+                      {sourceLabels[i.source].toLowerCase()} (
+                      {Math.round((f.hotspots[i.source] / f.baseline!) * 100)}% of emissions)
+                    </span>
                   </div>
                   <div className="intervention-finance">
                     <div>
@@ -211,7 +251,16 @@ export default function Interventions() {
                     </div>
                   </div>
                   <div className="intervention-card-foot">
-                    <span>{i.duration}</span>
+                    <span>
+                      {i.estimate.paybackMonths === null
+                        ? 'No payback'
+                        : i.estimate.paybackMonths === 0
+                          ? 'Immediate payback'
+                          : i.estimate.paybackMonths < 12
+                            ? `${Math.round(i.estimate.paybackMonths)}-month payback`
+                            : `${(i.estimate.paybackMonths / 12).toFixed(1)}-year payback`}{' '}
+                      · {i.duration} to implement
+                    </span>
                     <Tag
                       id={`intervention-complexity-${i.id}`}
                       tone={i.complexity === 'Low' ? 'success' : 'neutral'}
@@ -223,6 +272,17 @@ export default function Interventions() {
               );
             })}
           </div>
+          {excluded.length > 0 && (
+            <p className="excluded-measures" data-testid="intervention-excluded">
+              Not applicable to {f.name}:{' '}
+              {excluded.map((e, k) => (
+                <span key={e.item.id}>
+                  {k > 0 && ' · '}
+                  <strong>{e.item.name}</strong> ({e.reason})
+                </span>
+              ))}
+            </p>
+          )}
         </>
       ) : (
         <Empty
